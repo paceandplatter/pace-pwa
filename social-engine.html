@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pace &amp; Platter — Social Engine</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React + ReactDOM + Babel (for component injection into panels) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ================================================================
+       BRAND COLOR SYSTEM
+       Extracted from the Pace & Platter challenge coin logo:
+         — Dark gunmetal ring  →  coal / gunmetal / steel scale
+         — Chrome bevel edges  →  silver scale
+         — Crimson velvet quad →  crimson / accent scale
+         — Map panel whites    →  panel-* tokens
+         — Pure black surround →  void
+       ================================================================ */
+    :root {
+      /* --- Darks (medallion ring / background) --- */
+      --void:              #080808;
+      --coal:              #101010;
+      --gunmetal:          #171717;
+      --gunmetal-raised:   #1d1d1d;
+      --steel-dark:        #232323;
+      --steel:             #2c2c2c;
+      --steel-light:       #383838;
+      --iron:              #484848;
+      --iron-light:        #5c5c5c;
+
+      /* --- Silver scale (chrome bevel / highlights) --- */
+      --silver-dim:        #686868;
+      --silver-muted:      #848484;
+      --silver:            #9e9e9e;
+      --silver-bright:     #bebebe;
+      --silver-high:       #d6d6d6;
+      --off-white:         #eeeeee;
+
+      /* --- Brand crimson (velvet inset quadrant) --- */
+      --crimson:           #c41e3a;
+      --crimson-mid:       #9e1830;
+      --crimson-deep:      #6a0f1e;
+      --crimson-glow:      rgba(196, 30, 58, 0.40);
+      --crimson-glow-soft: rgba(196, 30, 58, 0.18);
+      --crimson-glow-dim:  rgba(196, 30, 58, 0.10);
+
+      /* --- Panel tokens (map / text quadrants) --- */
+      --panel-bg:          #e6e6e6;
+      --panel-text:        #181818;
+
+      /* --- Semantic aliases --- */
+      --bg-page:           var(--void);
+      --bg-surface:        var(--coal);
+      --bg-raised:         var(--gunmetal);
+      --bg-card:           var(--gunmetal-raised);
+      --border-subtle:     var(--steel);
+      --border-default:    var(--steel-light);
+      --border-strong:     var(--iron);
+      --text-primary:      var(--off-white);
+      --text-secondary:    var(--silver-bright);
+      --text-muted:        var(--silver-muted);
+      --text-dim:          var(--silver-dim);
+      --accent:            var(--crimson);
+
+      /* --- Typography --- */
+      --font-display:      'Alfa Slab One', serif;
+      --font-ui:           'Barlow Condensed', sans-serif;
+      --font-mono:         'JetBrains Mono', monospace;
+
+      /* --- Emboss depth helpers --- */
+      --shadow-raised:
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 2px 8px  rgba(0,0,0,0.65),
+        0 1px 2px  rgba(0,0,0,0.40);
+      --shadow-inset:
+        inset 0 2px 6px rgba(0,0,0,0.75),
+        inset 0 1px 0   rgba(0,0,0,0.55),
+        0 1px 0         rgba(255,255,255,0.04);
+      --shadow-card:
+        0 4px 18px rgba(0,0,0,0.72),
+        0 1px 3px  rgba(0,0,0,0.50),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    /* ================================================================
+       RESET & BASE
+       ================================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar            { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track      { background: var(--coal); }
+    ::-webkit-scrollbar-thumb      { background: var(--steel-light); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover{ background: var(--iron); }
+
+    /* ================================================================
+       PAGE SHELL
+       ================================================================ */
+    #app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ================================================================
+       HEADER
+       Page load: fade in over 0.4s starting immediately.
+       ================================================================ */
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--coal);
+      border-bottom: 1px solid var(--steel);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.03),
+        0 3px 14px rgba(0,0,0,0.65);
+      position: relative;
+      z-index: 10;
+      flex-shrink: 0;
+
+      opacity: 0;
+      animation: anim-fade 0.4s ease forwards;
+    }
+
+    /* Wordmark */
+    .wordmark {
+      font-family: var(--font-display);
+      font-size: 17px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--off-white);
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.07),
+        0 -1px 0 rgba(0,0,0,0.9),
+        0 2px 8px rgba(0,0,0,0.4);
+      user-select: none;
+    }
+    .wordmark .amp {
+      color: var(--crimson);
+    }
+
+    /* Gear / settings button */
+    .gear-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      background: var(--gunmetal);
+      border: 1px solid var(--steel-light);
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--silver-muted);
+      transition: color 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow-raised);
+    }
+    .gear-btn:hover {
+      color: var(--off-white);
+      border-color: var(--iron);
+      background: var(--steel-dark);
+    }
+    .gear-btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    /* ================================================================
+       TAB NAV
+       Page load: slide up over 0.3s with 0.3s delay.
+       ================================================================ */
+    #tab-nav {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 0 18px;
+      background: var(--coal);
+      border-bottom: 1px solid var(--steel);
+      height: 46px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 9;
+
+      opacity: 0;
+      transform: translateY(8px);
+      animation: anim-slide-up 0.3s ease 0.3s forwards;
+    }
+
+    .tab-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      height: 36px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--silver-bright);
+      background: var(--gunmetal);
+    }
+
+    .tab-btn.active {
+      color: var(--off-white);
+      background: var(--gunmetal-raised);
+      border-color: var(--steel-light);
+      border-bottom-color: var(--gunmetal-raised);
+      margin-bottom: -1px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 -1px 6px rgba(0,0,0,0.3);
+    }
+
+    /* ── Forge tab: intelligence layer ── */
+    .tab-btn.forge {
+      height: 40px;              /* slightly elevated above other tabs */
+      color: var(--silver);
+      background: var(--gunmetal);
+      border-color: var(--steel-dark);
+      /* persistent subtle crimson glow */
+      box-shadow:
+        0 -4px 16px var(--crimson-glow-soft),
+        0  0    8px var(--crimson-glow-dim),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    /* Crimson top-edge accent line */
+    .tab-btn.forge::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--crimson-mid), transparent);
+      opacity: 0.75;
+    }
+    .tab-btn.forge:hover {
+      color: var(--off-white);
+      background: var(--steel-dark);
+      box-shadow:
+        0 -5px 20px var(--crimson-glow),
+        0  0   12px rgba(196, 30, 58, 0.22),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .tab-btn.forge.active {
+      color: var(--off-white);
+      background: var(--steel-dark);
+      border-color: var(--crimson-deep);
+      border-bottom-color: var(--steel-dark);
+      margin-bottom: -1px;
+      box-shadow:
+        0 -6px 24px var(--crimson-glow),
+        0  0   16px rgba(196, 30, 58, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+
+    /* ================================================================
+       CONTENT AREA
+       Page load: fade in over 0.35s with 0.5s delay (0.3s + 0.2s further).
+       ================================================================ */
+    #content {
+      flex: 1;
+      position: relative;
+      background: var(--bg-page);
+
+      opacity: 0;
+      animation: anim-fade 0.35s ease 0.5s forwards;
+    }
+
+    /* Tab panels — absolute stacked, fade between them */
+    .tab-panel {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .tab-panel.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ================================================================
+       KEYFRAME ANIMATIONS
+       ================================================================ */
+    @keyframes anim-fade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes anim-slide-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════ -->
+  <header id="header">
+    <div class="wordmark">PACE <span class="amp">&amp;</span> PLATTER</div>
+
+    <button class="gear-btn" id="settings-btn" title="Settings" aria-label="Open settings">
+      <!-- Gear / settings icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+                 a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+                 A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+                 l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+                 A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+                 l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+                 a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+                 l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+                 a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       TAB NAV
+       ════════════════════════════════════════ -->
+  <nav id="tab-nav" role="tablist" aria-label="Engine sections">
+    <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="panel-image"    data-tab="image">Image</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-video"    data-tab="video">Video</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-prompts"  data-tab="prompts">Prompts</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="panel-campaign" data-tab="campaign">Campaign</button>
+    <button class="tab-btn forge"  role="tab" aria-selected="false" aria-controls="panel-forge"    data-tab="forge">Forge</button>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+       CONTENT AREA
+       ════════════════════════════════════════ -->
+  <main id="content">
+    <div class="tab-panel active" id="panel-image"    role="tabpanel" aria-labelledby="tab-image"></div>
+    <div class="tab-panel"        id="panel-video"    role="tabpanel" aria-labelledby="tab-video"></div>
+    <div class="tab-panel"        id="panel-prompts"  role="tabpanel" aria-labelledby="tab-prompts"></div>
+    <div class="tab-panel"        id="panel-campaign" role="tabpanel" aria-labelledby="tab-campaign"></div>
+    <div class="tab-panel"        id="panel-forge"    role="tabpanel" aria-labelledby="tab-forge"></div>
+  </main>
+
+</div>
+
+<!-- ════════════════════════════════════════
+     TAB SWITCHING — vanilla JS
+     150ms CSS transition handles the fade.
+     ════════════════════════════════════════ -->
+<script>
+  (function () {
+    const tabs   = document.querySelectorAll('#tab-nav .tab-btn');
+    const panels = document.querySelectorAll('#content .tab-panel');
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var target = tab.dataset.tab;
+
+        // Update tab states
+        tabs.forEach(function (t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+
+        // Swap panel visibility — CSS transition handles the 150ms fade
+        panels.forEach(function (p) { p.classList.remove('active'); });
+        var targetPanel = document.getElementById('panel-' + target);
+        if (targetPanel) targetPanel.classList.add('active');
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
