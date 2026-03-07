@@ -337,6 +337,796 @@
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0);   }
     }
+
+    /* ================================================================
+       SETTINGS OVERLAY + DRAWER
+       ================================================================ */
+    #settings-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.62);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease-out;
+    }
+    #settings-overlay.open { opacity: 1; pointer-events: all; }
+
+    #settings-drawer {
+      position: fixed; top: 0; right: 0; height: 100%; width: 320px; z-index: 101;
+      background: var(--gunmetal);
+      border-left: 1px solid var(--steel-light);
+      box-shadow: -6px 0 32px rgba(0,0,0,0.75);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s ease-out;
+    }
+    #settings-drawer.open { transform: translateX(0); }
+
+    .sd-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--steel);
+    }
+    .sd-title {
+      font-family: var(--font-ui); font-size: 11px; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--silver-bright);
+    }
+    .sd-close {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--gunmetal); border: 1px solid var(--steel-light);
+      border-radius: 3px; cursor: pointer;
+      color: var(--silver-muted); font-size: 16px; line-height: 1;
+      box-shadow: var(--shadow-raised);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .sd-close:hover { color: var(--off-white); border-color: var(--iron); background: var(--steel-dark); }
+
+    .sd-body {
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .sd-field label {
+      display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--silver-muted); margin-bottom: 6px;
+    }
+    .sd-field input {
+      width: 100%; font-family: var(--font-mono); font-size: 12px;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      color: var(--off-white); padding: 10px 12px; border-radius: 3px;
+      box-shadow: var(--shadow-inset);
+    }
+    .sd-field input:focus { border-color: var(--crimson-mid); outline: none; }
+
+    .toggle-group {
+      display: flex; border: 1px solid var(--steel-light);
+      border-radius: 3px; overflow: hidden;
+    }
+    .toggle-opt {
+      flex: 1; font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 0;
+      background: var(--steel-dark); color: var(--silver-muted);
+      border: none; cursor: pointer; transition: all 0.15s;
+    }
+    .toggle-opt.active { background: var(--steel-light); color: var(--off-white); }
+
+    .sd-footer { padding: 16px 20px; border-top: 1px solid var(--steel); }
+    #settings-save {
+      width: 100%; padding: 12px; font-family: var(--font-ui); font-size: 12px;
+      font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+      background: var(--crimson); color: var(--off-white); border: none;
+      border-radius: 3px; cursor: pointer;
+      box-shadow: 0 2px 12px var(--crimson-glow-soft);
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    #settings-save:hover { background: var(--crimson-mid); box-shadow: 0 2px 18px var(--crimson-glow); }
+
+    /* ================================================================
+       IMAGE GENERATOR PANEL
+       ================================================================ */
+
+    /* Panel wrapper + grid */
+    #ig-wrap {
+      height: 100%; overflow-y: auto;
+      padding: 24px;
+    }
+    .ig-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      min-height: 100%;
+    }
+    @media (max-width: 800px) {
+      .ig-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Controls column */
+    .ig-controls {
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .ig-section { display: flex; flex-direction: column; }
+    .ig-section-grow { flex: 1; }
+    .ig-label {
+      font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--silver-muted); margin-bottom: 7px;
+    }
+
+    /* Model toggle (3-way) */
+    .ig-model-toggle {
+      display: flex; border: 1px solid var(--steel-light);
+      border-radius: 3px; overflow: hidden;
+    }
+    .ig-model-opt {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2px;
+      padding: 9px 4px;
+      background: var(--steel-dark); border: none; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      border-right: 1px solid var(--steel-light);
+    }
+    .ig-model-opt:last-child { border-right: none; }
+    .ig-model-opt .ig-stars {
+      font-size: 9px; color: var(--iron-light);
+      letter-spacing: 1px; transition: color 0.15s;
+    }
+    .ig-model-opt .ig-mname {
+      font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--silver-muted); transition: color 0.15s;
+    }
+    .ig-model-opt.active { background: var(--steel-light); }
+    .ig-model-opt.active .ig-stars { color: var(--crimson); }
+    .ig-model-opt.active .ig-mname { color: var(--off-white); }
+
+    /* Dropdowns */
+    .ig-select {
+      width: 100%; font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      color: var(--off-white); padding: 10px 12px; border-radius: 3px;
+      box-shadow: var(--shadow-inset); cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23848484'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .ig-select:focus { border-color: var(--crimson-mid); outline: none; }
+    .ig-select option { background: var(--steel-dark); }
+
+    /* Aspect ratio pills */
+    .ig-ratio-group {
+      display: flex; gap: 6px;
+    }
+    .ig-ratio-opt {
+      flex: 1; font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; padding: 7px 0;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      color: var(--silver-muted); border-radius: 3px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ig-ratio-opt.active {
+      background: var(--steel-light); color: var(--off-white);
+      border-color: var(--iron);
+    }
+
+    /* Scene textarea */
+    .ig-textarea {
+      flex: 1; width: 100%; min-height: 180px;
+      font-family: var(--font-ui); font-size: 13px; font-weight: 400;
+      line-height: 1.6;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      color: var(--off-white); padding: 12px 14px; border-radius: 3px;
+      box-shadow: var(--shadow-inset); resize: vertical;
+    }
+    .ig-textarea:focus { border-color: var(--crimson-mid); outline: none; }
+    .ig-textarea::placeholder { color: var(--iron-light); }
+
+    /* Generate button */
+    .ig-generate-btn {
+      width: 100%; padding: 14px; font-family: var(--font-ui); font-size: 13px;
+      font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+      background: var(--crimson); color: var(--off-white); border: none;
+      border-radius: 3px; cursor: pointer;
+      box-shadow: 0 2px 14px var(--crimson-glow-soft);
+      transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+    .ig-generate-btn:hover {
+      background: var(--crimson-mid); box-shadow: 0 2px 20px var(--crimson-glow);
+    }
+    .ig-generate-btn:active { transform: scale(0.98); }
+    .ig-generate-btn:disabled {
+      background: var(--steel); color: var(--silver-dim);
+      box-shadow: none; cursor: not-allowed;
+    }
+
+    /* Output column */
+    .ig-output {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    #ig-canvas {
+      position: relative;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      border-radius: 4px; overflow: hidden;
+      min-height: 360px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-inset);
+    }
+
+    #ig-keyhole-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    #ig-keyhole {
+      width: 64px; height: 80px;
+      color: var(--iron);
+      transition: color 0.3s;
+    }
+    #ig-status-text {
+      font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--iron); transition: color 0.3s;
+    }
+
+    /* Generating state */
+    #ig-canvas.generating #ig-keyhole {
+      color: var(--silver-muted);
+      animation: ig-spin 8s linear infinite, ig-vibrate 2.5s ease-in-out infinite;
+    }
+    #ig-canvas.generating #ig-status-text { color: var(--silver-muted); }
+
+    /* Locked (success) state */
+    #ig-canvas.locked #ig-keyhole {
+      color: var(--crimson);
+      animation: ig-lock-snap 0.35s ease forwards;
+    }
+
+    @keyframes ig-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes ig-vibrate {
+      0%, 85%, 100% { transform: rotate(0deg) translateX(0); }
+      87%  { transform: rotate(-1.5deg) translateX(-1px); }
+      89%  { transform: rotate(1.5deg) translateX(1px); }
+      91%  { transform: rotate(-1deg) translateX(-1px); }
+      93%  { transform: rotate(1deg) translateX(1px); }
+      95%  { transform: rotate(0deg) translateX(0); }
+    }
+    @keyframes ig-lock-snap {
+      0%   { transform: scale(1) rotate(0deg); }
+      40%  { transform: scale(1.12) rotate(-6deg); }
+      70%  { transform: scale(0.94) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    #ig-flash {
+      position: absolute; inset: 0;
+      background: var(--crimson);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    #ig-flash.visible { opacity: 0.22; }
+
+    #ig-image {
+      width: 100%; height: auto; display: block;
+      opacity: 0; transition: opacity 0.4s ease;
+    }
+    #ig-image.visible { opacity: 1; }
+
+    #ig-error {
+      font-family: var(--font-ui); font-size: 12px;
+      color: var(--crimson); text-align: center; padding: 20px;
+      line-height: 1.6;
+    }
+
+    /* Action buttons */
+    #ig-actions {
+      display: flex; gap: 8px;
+    }
+    .ig-action-btn {
+      flex: 1; padding: 10px; font-family: var(--font-ui); font-size: 11px;
+      font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      color: var(--silver-bright); border-radius: 3px; cursor: pointer;
+      box-shadow: var(--shadow-raised); transition: all 0.15s;
+    }
+    .ig-action-btn:hover { background: var(--steel); color: var(--off-white); }
+    .ig-action-primary {
+      background: var(--steel); border-color: var(--iron);
+      color: var(--off-white);
+    }
+
+    /* Caption section */
+    #ig-caption-section {
+      background: var(--steel-dark); border: 1px solid var(--steel-light);
+      border-radius: 4px; padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .ig-caption-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ig-tone-group {
+      display: flex; border: 1px solid var(--steel-light);
+      border-radius: 3px; overflow: hidden;
+    }
+    .ig-tone-opt {
+      padding: 5px 10px; font-family: var(--font-ui); font-size: 10px;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      background: var(--steel-dark); color: var(--silver-muted);
+      border: none; border-right: 1px solid var(--steel-light); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ig-tone-opt:last-child { border-right: none; }
+    .ig-tone-opt.active { background: var(--steel-light); color: var(--off-white); }
+
+    .ig-caption-spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid var(--steel-light); border-top-color: var(--silver-muted);
+      border-radius: 50%; animation: ig-spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 4px;
+    }
+    #ig-caption-text {
+      font-family: var(--font-ui); font-size: 14px; font-weight: 400;
+      line-height: 1.7; color: var(--silver-bright);
+      white-space: pre-wrap; min-height: 40px;
+    }
+    .ig-regen-btn {
+      align-self: flex-start; padding: 6px 14px;
+      font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      background: transparent; border: 1px solid var(--steel-light);
+      color: var(--silver-muted); border-radius: 3px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ig-regen-btn:hover { color: var(--off-white); border-color: var(--iron); }
+
+/* ================================================================
+   VIDEO GENERATOR PANEL
+   ================================================================ */
+
+#vg-wrap {
+  height: 100%; overflow-y: auto; padding: 24px;
+}
+
+/* ── Image Drop Zone ── */
+#vg-dropzone {
+  position: relative;
+  min-height: 140px;
+  border: 2px dashed var(--iron);
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px;
+  background: var(--steel-dark);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+}
+#vg-dropzone.drag-over {
+  border-color: var(--crimson);
+  background: var(--gunmetal);
+}
+#vg-dropzone.filled { border-style: solid; border-color: var(--iron); cursor: default; }
+#vg-dropzone-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none;
+}
+#vg-dropzone-placeholder svg {
+  width: 32px; height: 32px; color: var(--iron); opacity: 0.7;
+}
+.vg-dz-text {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--iron-light); text-align: center;
+}
+.vg-dz-sub {
+  font-family: var(--font-ui); font-size: 10px; color: var(--silver-dim);
+  text-align: center;
+}
+#vg-dropzone-thumb {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  display: none; opacity: 0; transition: opacity 0.3s;
+}
+#vg-dropzone-thumb.visible { opacity: 1; }
+#vg-dropzone-clear {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  background: rgba(0,0,0,0.7); border: 1px solid var(--steel-light);
+  border-radius: 3px; color: var(--silver-muted);
+  font-size: 13px; line-height: 1; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  transition: color 0.15s;
+}
+#vg-dropzone-clear:hover { color: var(--off-white); }
+
+/* URL paste row */
+.vg-url-row {
+  display: flex; gap: 6px; margin-top: 6px;
+}
+.vg-url-input {
+  flex: 1; font-family: var(--font-ui); font-size: 12px;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--off-white); padding: 8px 10px; border-radius: 3px;
+  box-shadow: var(--shadow-inset);
+}
+.vg-url-input::placeholder { color: var(--iron-light); }
+.vg-url-input:focus { border-color: var(--crimson-mid); outline: none; }
+.vg-url-btn {
+  padding: 8px 12px; font-family: var(--font-ui); font-size: 10px;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-bright); border-radius: 3px; cursor: pointer;
+  white-space: nowrap; transition: all 0.15s;
+}
+.vg-url-btn:hover { background: var(--steel-light); color: var(--off-white); }
+
+/* Upload button (inside dropzone, shown when empty) */
+.vg-upload-btn {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); padding: 6px 14px; border-radius: 3px;
+  cursor: pointer; transition: all 0.15s;
+}
+.vg-upload-btn:hover { color: var(--off-white); border-color: var(--iron); }
+
+/* ── Duration pills ── */
+.vg-duration-group {
+  display: flex; gap: 6px;
+}
+.vg-dur-opt {
+  flex: 1; font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; padding: 8px 0;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); border-radius: 3px; cursor: pointer;
+  transition: all 0.15s;
+}
+.vg-dur-opt.active {
+  background: var(--steel-light); color: var(--off-white);
+  border-color: var(--iron);
+}
+
+/* ── Engine toggle ── */
+.vg-engine-toggle {
+  display: flex; border: 1px solid var(--steel-light);
+  border-radius: 3px; overflow: hidden;
+}
+.vg-eng-opt {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  padding: 9px 6px;
+  background: var(--steel-dark); border: none; cursor: pointer;
+  transition: background 0.15s;
+  border-right: 1px solid var(--steel-light);
+}
+.vg-eng-opt:last-child { border-right: none; }
+.vg-eng-name {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--silver-muted); transition: color 0.15s;
+}
+.vg-eng-tag {
+  font-family: var(--font-ui); font-size: 9px;
+  letter-spacing: 0.06em; color: var(--iron-light); transition: color 0.15s;
+}
+.vg-eng-opt.active { background: var(--steel-light); }
+.vg-eng-opt.active .vg-eng-name { color: var(--off-white); }
+.vg-eng-opt.active .vg-eng-tag { color: var(--silver-muted); }
+
+/* ── Seedance coming soon note ── */
+#vg-seedance-note {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; color: var(--iron-light);
+  background: var(--steel-dark); border: 1px solid var(--steel);
+  border-radius: 3px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+#vg-seedance-note .vg-zap { color: var(--crimson); font-size: 11px; }
+
+/* ── Output canvas ── */
+#vg-canvas {
+  position: relative;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  border-radius: 4px; overflow: hidden;
+  min-height: 360px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-inset);
+}
+
+/* City-block loading SVG */
+#vg-city-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+#vg-city {
+  width: 200px; height: 120px;
+  opacity: 0.5; transition: opacity 0.3s;
+}
+#vg-city .blk { fill: var(--steel); }
+#vg-city .street {
+  fill: var(--gunmetal);
+}
+#vg-canvas.generating #vg-city { opacity: 1; }
+#vg-canvas.generating .street {
+  animation: vg-street-fill 0.6s ease forwards;
+}
+/* Stagger each street segment left to right */
+#vg-canvas.generating .s1  { animation-delay: 0.0s; }
+#vg-canvas.generating .s2  { animation-delay: 0.3s; }
+#vg-canvas.generating .s3  { animation-delay: 0.6s; }
+#vg-canvas.generating .s4  { animation-delay: 0.9s; }
+#vg-canvas.generating .s5  { animation-delay: 1.2s; }
+#vg-canvas.generating .s6  { animation-delay: 1.5s; }
+#vg-canvas.generating .s7  { animation-delay: 1.8s; }
+#vg-canvas.generating .s8  { animation-delay: 2.1s; }
+#vg-canvas.generating .s9  { animation-delay: 2.4s; }
+#vg-canvas.generating .s10 { animation-delay: 2.7s; }
+#vg-canvas.generating .s11 { animation-delay: 3.0s; }
+#vg-canvas.generating .s12 { animation-delay: 3.3s; }
+/* Loop: restart every ~4.5s so it keeps cycling */
+#vg-canvas.generating .street {
+  animation: vg-street-fill 0.5s ease forwards, vg-street-dim 0.4s ease 4.5s forwards;
+  animation-iteration-count: infinite;
+  animation-duration: 4.8s;
+}
+
+@keyframes vg-street-fill {
+  from { fill: var(--gunmetal); }
+  to   { fill: var(--silver-muted); }
+}
+
+#vg-status-text {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--iron); transition: color 0.3s;
+}
+#vg-canvas.generating #vg-status-text { color: var(--silver-muted); }
+
+#vg-error {
+  font-family: var(--font-ui); font-size: 12px;
+  color: var(--crimson); text-align: center; padding: 20px; line-height: 1.6;
+  display: none;
+}
+
+/* Video player (revealed after generation) */
+#vg-video {
+  width: 100%; height: auto; display: none;
+  opacity: 0; transition: opacity 0.4s ease;
+}
+#vg-video.visible { opacity: 1; }
+
+/* ── Action + caption sections ── */
+#vg-actions {
+  display: flex; gap: 8px;
+}
+#vg-caption-section {
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  border-radius: 4px; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.vg-caption-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+#vg-caption-loading { display: none; }
+#vg-caption-text {
+  font-family: var(--font-ui); font-size: 14px; font-weight: 400;
+  line-height: 1.7; color: var(--silver-bright);
+  white-space: pre-wrap; min-height: 40px;
+}
+
+/* ================================================================
+   PROMPT LIBRARY PANEL
+   ================================================================ */
+
+#pl-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#pl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: var(--gunmetal);
+  border-bottom: 1px solid var(--steel);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.pl-filter-group {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+#pl-save-btn {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--crimson); border: none;
+  color: #fff; padding: 9px 18px; border-radius: 3px;
+  cursor: pointer; white-space: nowrap;
+  box-shadow: var(--shadow-raised);
+  transition: background 0.15s;
+}
+#pl-save-btn:hover { background: var(--crimson-mid); }
+
+/* Save form */
+#pl-save-form {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 24px;
+  background: var(--gunmetal-raised);
+  border-bottom: 1px solid var(--steel-light);
+  flex-shrink: 0;
+}
+#pl-save-form.open { display: flex; }
+
+.pl-save-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pl-save-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+.pl-save-input, .pl-save-select {
+  font-family: var(--font-ui); font-size: 12px;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--off-white); padding: 8px 10px; border-radius: 3px;
+  box-shadow: var(--shadow-inset); width: 100%;
+}
+.pl-save-input::placeholder { color: var(--iron-light); }
+.pl-save-input:focus, .pl-save-select:focus { border-color: var(--crimson-mid); outline: none; }
+.pl-save-select option { background: var(--steel-dark); }
+.pl-save-ta {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-bright); padding: 8px 10px; border-radius: 3px;
+  box-shadow: var(--shadow-inset); resize: vertical; min-height: 64px; width: 100%;
+}
+.pl-save-ta:focus { border-color: var(--crimson-mid); outline: none; }
+.pl-save-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.pl-save-confirm {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--crimson); border: none;
+  color: #fff; padding: 9px 20px; border-radius: 3px; cursor: pointer;
+  box-shadow: var(--shadow-raised); transition: background 0.15s;
+}
+.pl-save-confirm:hover { background: var(--crimson-mid); }
+.pl-save-cancel {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: transparent; border: 1px solid var(--steel-light);
+  color: var(--silver-muted); padding: 9px 16px; border-radius: 3px; cursor: pointer;
+  transition: all 0.15s;
+}
+.pl-save-cancel:hover { color: var(--off-white); border-color: var(--iron); }
+
+/* Grid */
+#pl-grid-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px 24px;
+}
+#pl-count {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--iron-light);
+  margin-bottom: 14px;
+}
+#pl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+/* Card */
+.pl-card {
+  background: var(--steel-dark);
+  border: 1px solid var(--steel-light);
+  border-radius: 4px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s;
+}
+.pl-card:hover { border-color: var(--iron); }
+.pl-card.pl-custom { border-left: 3px solid var(--crimson); }
+
+.pl-card-title {
+  font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--off-white); line-height: 1.3;
+}
+.pl-field-label {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--iron-light); margin-bottom: 4px;
+}
+.pl-base-ta, .pl-neg-ta {
+  width: 100%;
+  font-family: var(--font-mono); font-size: 11px;
+  line-height: 1.55; color: var(--silver-bright);
+  background: var(--gunmetal);
+  border: 1px solid var(--steel);
+  border-radius: 3px; padding: 7px 9px;
+  resize: vertical; min-height: 80px;
+  box-shadow: var(--shadow-inset);
+  transition: border-color 0.15s;
+}
+.pl-base-ta:focus, .pl-neg-ta:focus { border-color: var(--crimson-mid); outline: none; }
+.pl-neg-ta { min-height: 56px; }
+
+.pl-neg-section { display: flex; flex-direction: column; gap: 4px; }
+.pl-neg-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--iron-light);
+  background: none; border: none; cursor: pointer;
+  padding: 0; transition: color 0.15s;
+}
+.pl-neg-toggle:hover { color: var(--silver-muted); }
+.pl-neg-arrow { display: inline-block; transition: transform 0.2s; font-size: 8px; }
+.pl-neg-toggle.open .pl-neg-arrow { transform: rotate(180deg); }
+.pl-neg-ta { display: none; }
+.pl-neg-ta.open { display: block; }
+
+.pl-badges { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.pl-badge {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 2px;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-muted);
+}
+.pl-badge-model { color: var(--silver-bright); border-color: var(--iron); }
+.pl-badge-ideogram { color: var(--crimson); border-color: var(--crimson-deep); background: var(--steel-dark); }
+
+.pl-note {
+  font-family: var(--font-ui); font-size: 11px; font-style: italic;
+  color: var(--silver-dim); line-height: 1.5;
+}
+.pl-card-footer { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+.pl-use-btn {
+  flex: 1; padding: 9px;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--crimson); border: none;
+  color: #fff; border-radius: 3px; cursor: pointer;
+  box-shadow: var(--shadow-raised); transition: background 0.15s;
+}
+.pl-use-btn:hover { background: var(--crimson-mid); }
+.pl-use-btn:active { transform: scale(0.98); }
+.pl-del-btn {
+  padding: 9px 12px;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); border-radius: 3px; cursor: pointer;
+  transition: all 0.15s;
+}
+.pl-del-btn:hover { color: var(--crimson); border-color: var(--crimson-deep); }
+
+#pl-no-results {
+  display: none;
+  font-family: var(--font-ui); font-size: 13px;
+  color: var(--iron-light); text-align: center;
+  padding: 60px 20px; letter-spacing: 0.08em;
+}
   </style>
 </head>
 <body>
@@ -382,12 +1172,471 @@
        CONTENT AREA
        ════════════════════════════════════════ -->
   <main id="content">
-    <div class="tab-panel active" id="panel-image"    role="tabpanel" aria-labelledby="tab-image"></div>
-    <div class="tab-panel"        id="panel-video"    role="tabpanel" aria-labelledby="tab-video"></div>
-    <div class="tab-panel"        id="panel-prompts"  role="tabpanel" aria-labelledby="tab-prompts"></div>
+    <div class="tab-panel active" id="panel-image"    role="tabpanel" aria-labelledby="tab-image">
+      <div id="ig-wrap">
+        <div class="ig-grid">
+
+          <!-- LEFT: CONTROLS -->
+          <div class="ig-controls">
+            <!-- Section: Model -->
+            <div class="ig-section">
+              <div class="ig-label">Image Model</div>
+              <div class="ig-model-toggle">
+                <button class="ig-model-opt active" data-model="flux-pro-1.1">
+                  <span class="ig-stars">★★★</span><span class="ig-mname">Pro 1.1</span>
+                </button>
+                <button class="ig-model-opt" data-model="flux-dev">
+                  <span class="ig-stars">★★</span><span class="ig-mname">Dev</span>
+                </button>
+                <button class="ig-model-opt" data-model="flux-schnell">
+                  <span class="ig-stars">★</span><span class="ig-mname">Schnell</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Section: Category -->
+            <div class="ig-section">
+              <label class="ig-label" for="ig-category">Category</label>
+              <select id="ig-category" class="ig-select">
+                <option value="">— Select category —</option>
+                <option value="polish-underground">Polish Underground</option>
+                <option value="polish-outdoor">Polish Outdoor Patios</option>
+                <option value="polish-traditional">Polish Traditional</option>
+                <option value="polish-modern">Polish Modern</option>
+                <option value="italian">Italian</option>
+                <option value="tapas-tacos">Tapas &amp; Tacos</option>
+                <option value="asian">Asian</option>
+                <option value="carnivore">Carnivore</option>
+                <option value="wild-game">Wild Game</option>
+              </select>
+            </div>
+
+            <!-- Section: Platform -->
+            <div class="ig-section">
+              <label class="ig-label" for="ig-platform">Platform</label>
+              <select id="ig-platform" class="ig-select">
+                <option value="">— Select platform —</option>
+                <option value="yt-shorts">YouTube Shorts</option>
+                <option value="tiktok">TikTok</option>
+                <option value="reels">Reels</option>
+                <option value="instagram">Instagram</option>
+                <option value="pinterest">Pinterest</option>
+                <option value="facebook">Facebook</option>
+                <option value="yt-thumb">YouTube Thumbnails</option>
+                <option value="linkedin">LinkedIn</option>
+              </select>
+            </div>
+
+            <!-- Section: Aspect Ratio (radio pills, auto-set by platform) -->
+            <div class="ig-section">
+              <div class="ig-label">Aspect Ratio</div>
+              <div class="ig-ratio-group">
+                <button class="ig-ratio-opt" data-ratio="9:16">9:16</button>
+                <button class="ig-ratio-opt active" data-ratio="1:1">1:1</button>
+                <button class="ig-ratio-opt" data-ratio="4:5">4:5</button>
+                <button class="ig-ratio-opt" data-ratio="16:9">16:9</button>
+              </div>
+            </div>
+
+            <!-- Section: Scene Description -->
+            <div class="ig-section ig-section-grow">
+              <label class="ig-label" for="ig-prompt">Scene Description</label>
+              <textarea id="ig-prompt" class="ig-textarea"
+                placeholder="Select a category above to auto-populate, or write your own…"
+                spellcheck="true"></textarea>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="ig-generate" class="ig-generate-btn">GENERATE IMAGE</button>
+          </div>
+
+          <!-- RIGHT: OUTPUT -->
+          <div class="ig-output">
+            <!-- Output canvas area -->
+            <div id="ig-canvas">
+              <!-- Keyhole lock SVG (shown during loading) -->
+              <div id="ig-keyhole-wrap">
+                <svg id="ig-keyhole" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="32" cy="26" r="18" fill="none" stroke="currentColor" stroke-width="3.5"/>
+                  <circle cx="32" cy="26" r="8" fill="currentColor"/>
+                  <path d="M24 40 L20 72 L44 72 L40 40 Z" fill="currentColor"/>
+                </svg>
+                <div id="ig-status-text">Ready</div>
+              </div>
+              <!-- Generated image (hidden until result) -->
+              <img id="ig-image" src="" alt="Generated image" style="display:none">
+              <!-- Crimson flash overlay -->
+              <div id="ig-flash"></div>
+              <!-- Error message -->
+              <div id="ig-error" style="display:none"></div>
+            </div>
+
+            <!-- Action buttons (shown after image generated) -->
+            <div id="ig-actions" style="display:none">
+              <button class="ig-action-btn" id="ig-download">Download</button>
+              <button class="ig-action-btn" id="ig-copy-prompt">Copy Prompt</button>
+              <button class="ig-action-btn ig-action-primary" id="ig-send-video">Send to Video →</button>
+            </div>
+
+            <!-- Caption section (shown after image generated) -->
+            <div id="ig-caption-section" style="display:none">
+              <div class="ig-caption-header">
+                <span class="ig-label">Caption</span>
+                <div class="ig-tone-group">
+                  <button class="ig-tone-opt active" data-tone="punchy">Punchy</button>
+                  <button class="ig-tone-opt" data-tone="editorial">Editorial</button>
+                  <button class="ig-tone-opt" data-tone="story">Story</button>
+                </div>
+              </div>
+              <div id="ig-caption-body">
+                <div id="ig-caption-loading" style="display:none">
+                  <span class="ig-caption-spinner"></span> Generating caption…
+                </div>
+                <div id="ig-caption-text"></div>
+              </div>
+              <button id="ig-regen-caption" class="ig-regen-btn">↻ Regenerate</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-video" role="tabpanel" aria-labelledby="tab-video">
+  <div id="vg-wrap">
+    <div class="ig-grid">
+
+      <!-- LEFT: CONTROLS -->
+      <div class="ig-controls">
+
+        <!-- Image Input -->
+        <div class="ig-section">
+          <div class="ig-label">Source Image</div>
+          <div id="vg-dropzone">
+            <div id="vg-dropzone-placeholder">
+              <!-- Upload icon SVG -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <div class="vg-dz-text">Drop image here</div>
+              <div class="vg-dz-sub">or</div>
+              <button class="vg-upload-btn" id="vg-upload-btn">Choose File</button>
+              <input type="file" id="vg-file-input" accept="image/*" style="display:none">
+            </div>
+            <img id="vg-dropzone-thumb" src="" alt="Source image thumbnail">
+            <button id="vg-dropzone-clear" aria-label="Remove image">&#x2715;</button>
+          </div>
+          <!-- URL paste -->
+          <div class="vg-url-row">
+            <input type="text" class="vg-url-input" id="vg-url-input"
+                   placeholder="Or paste image URL…" autocomplete="off" spellcheck="false">
+            <button class="vg-url-btn" id="vg-url-set">Use URL</button>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="ig-section">
+          <label class="ig-label" for="vg-category">Category</label>
+          <select id="vg-category" class="ig-select">
+            <option value="">— Select category —</option>
+            <option value="polish-underground">Polish Underground</option>
+            <option value="polish-outdoor">Polish Outdoor Patios</option>
+            <option value="polish-traditional">Polish Traditional</option>
+            <option value="polish-modern">Polish Modern</option>
+            <option value="italian">Italian</option>
+            <option value="tapas-tacos">Tapas &amp; Tacos</option>
+            <option value="asian">Asian</option>
+            <option value="carnivore">Carnivore</option>
+            <option value="wild-game">Wild Game</option>
+          </select>
+        </div>
+
+        <!-- Motion Prompt Template -->
+        <div class="ig-section">
+          <label class="ig-label" for="vg-template">Motion Template</label>
+          <select id="vg-template" class="ig-select">
+            <option value="">— Select template —</option>
+            <option value="polish-underground">Polish Underground</option>
+            <option value="polish-outdoor">Polish Outdoor Patios</option>
+            <option value="polish-traditional">Polish Traditional</option>
+            <option value="polish-modern">Polish Modern</option>
+            <option value="italian">Italian</option>
+            <option value="tapas-tacos">Tapas &amp; Tacos</option>
+            <option value="asian">Asian</option>
+            <option value="carnivore">Carnivore</option>
+            <option value="wild-game">Wild Game</option>
+          </select>
+        </div>
+
+        <!-- Motion Prompt Textarea -->
+        <div class="ig-section ig-section-grow">
+          <label class="ig-label" for="vg-prompt">Motion Prompt</label>
+          <textarea id="vg-prompt" class="ig-textarea"
+            placeholder="Select a template above, or write your own camera motion description…"
+            spellcheck="true"></textarea>
+        </div>
+
+        <!-- Duration -->
+        <div class="ig-section">
+          <div class="ig-label">Duration</div>
+          <div class="vg-duration-group">
+            <button class="vg-dur-opt active" data-dur="5">5s</button>
+            <button class="vg-dur-opt" data-dur="10">10s</button>
+          </div>
+        </div>
+
+        <!-- Engine -->
+        <div class="ig-section">
+          <div class="ig-label">Engine</div>
+          <div class="vg-engine-toggle">
+            <button class="vg-eng-opt active" data-engine="kling">
+              <span class="vg-eng-name">Kling</span>
+              <span class="vg-eng-tag">v2.1 · Primary</span>
+            </button>
+            <button class="vg-eng-opt" data-engine="runway">
+              <span class="vg-eng-name">Runway</span>
+              <span class="vg-eng-tag">Gen-4 · Fallback</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Seedance note -->
+        <div id="vg-seedance-note">
+          <span class="vg-zap">&#x26A1;</span>
+          Seedance 2.0 — coming when OpenRouter supports it
+        </div>
+
+        <!-- Generate -->
+        <button id="vg-generate" class="ig-generate-btn">GENERATE VIDEO</button>
+      </div>
+
+      <!-- RIGHT: OUTPUT -->
+      <div class="ig-output">
+
+        <!-- Canvas -->
+        <div id="vg-canvas">
+          <div id="vg-city-wrap">
+            <!-- City-block grid SVG: 4 columns × 3 rows of buildings, streets between -->
+            <svg id="vg-city" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- Row 1 buildings -->
+              <rect class="blk" x="2"   y="2"  width="38" height="34"/>
+              <rect class="blk" x="52"  y="2"  width="38" height="34"/>
+              <rect class="blk" x="102" y="2"  width="38" height="34"/>
+              <rect class="blk" x="152" y="2"  width="46" height="34"/>
+              <!-- Horizontal street row 1 -->
+              <rect class="street s1"  x="2"   y="38" width="38" height="8"/>
+              <rect class="street s2"  x="52"  y="38" width="38" height="8"/>
+              <rect class="street s3"  x="102" y="38" width="38" height="8"/>
+              <rect class="street s4"  x="152" y="38" width="46" height="8"/>
+              <!-- Vertical streets col 1 -->
+              <rect class="street s5"  x="42"  y="2"  width="8"  height="116"/>
+              <!-- Row 2 buildings -->
+              <rect class="blk" x="2"   y="48" width="38" height="34"/>
+              <rect class="blk" x="52"  y="48" width="38" height="34"/>
+              <rect class="blk" x="102" y="48" width="38" height="34"/>
+              <rect class="blk" x="152" y="48" width="46" height="34"/>
+              <!-- Horizontal street row 2 -->
+              <rect class="street s6"  x="2"   y="84" width="38" height="8"/>
+              <rect class="street s7"  x="52"  y="84" width="38" height="8"/>
+              <rect class="street s8"  x="102" y="84" width="38" height="8"/>
+              <rect class="street s9"  x="152" y="84" width="46" height="8"/>
+              <!-- Vertical streets col 2 & 3 -->
+              <rect class="street s10" x="92"  y="2"  width="8"  height="116"/>
+              <rect class="street s11" x="142" y="2"  width="8"  height="116"/>
+              <!-- Row 3 buildings -->
+              <rect class="blk" x="2"   y="94" width="38" height="24"/>
+              <rect class="blk" x="52"  y="94" width="38" height="24"/>
+              <rect class="blk" x="102" y="94" width="38" height="24"/>
+              <rect class="blk" x="152" y="94" width="46" height="24"/>
+              <!-- Final vertical street (right edge) -->
+              <rect class="street s12" x="192" y="2"  width="6"  height="116"/>
+            </svg>
+            <div id="vg-status-text">Ready</div>
+          </div>
+          <div id="vg-error"></div>
+          <video id="vg-video" controls playsinline></video>
+        </div>
+
+        <!-- Actions (hidden until video ready) -->
+        <div id="vg-actions" style="display:none">
+          <button class="ig-action-btn" id="vg-download">Download</button>
+          <button class="ig-action-btn" id="vg-copy-prompt">Copy Prompt</button>
+        </div>
+
+        <!-- Caption (hidden until video ready) -->
+        <div id="vg-caption-section" style="display:none">
+          <div class="vg-caption-header">
+            <span class="ig-label">Caption</span>
+            <div class="ig-tone-group" id="vg-tone-group">
+              <button class="ig-tone-opt active" data-tone="punchy">Punchy</button>
+              <button class="ig-tone-opt" data-tone="editorial">Editorial</button>
+              <button class="ig-tone-opt" data-tone="story">Story</button>
+            </div>
+          </div>
+          <div id="vg-caption-body">
+            <div id="vg-caption-loading">
+              <span class="ig-caption-spinner"></span> Generating caption…
+            </div>
+            <div id="vg-caption-text"></div>
+          </div>
+          <button id="vg-regen-caption" class="ig-regen-btn">&#x21BB; Regenerate</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="tab-panel" id="panel-prompts" role="tabpanel" aria-labelledby="tab-prompts">
+  <div id="pl-wrap">
+
+    <!-- Toolbar: filters + save -->
+    <div id="pl-toolbar">
+      <div class="pl-filter-group">
+        <select class="ig-select" id="pl-filter-cat">
+          <option value="">All Categories</option>
+          <option value="polish-underground">Polish Underground</option>
+          <option value="polish-outdoor">Polish Outdoor Patios</option>
+          <option value="polish-traditional">Polish Traditional</option>
+          <option value="polish-modern">Polish Modern</option>
+          <option value="italian">Italian</option>
+          <option value="tapas-tacos">Tapas &amp; Tacos</option>
+          <option value="asian">Asian</option>
+          <option value="carnivore">Carnivore</option>
+          <option value="wild-game">Wild Game</option>
+        </select>
+        <select class="ig-select" id="pl-filter-type">
+          <option value="">All Types</option>
+          <option value="hero">Hero Food Shot</option>
+          <option value="lifestyle">Lifestyle</option>
+          <option value="app-demo">App Demo</option>
+          <option value="text-overlay">Text Overlay</option>
+        </select>
+        <select class="ig-select" id="pl-filter-model">
+          <option value="">All Models</option>
+          <option value="flux-pro-1.1">flux-pro-1.1</option>
+          <option value="flux-dev">flux-dev</option>
+          <option value="flux-schnell">flux-schnell</option>
+          <option value="ideogram">ideogram</option>
+        </select>
+      </div>
+      <button id="pl-save-btn">+ Save to Library</button>
+    </div>
+
+    <!-- Save form (hidden by default) -->
+    <div id="pl-save-form">
+      <div class="pl-save-row">
+        <div class="pl-save-group" style="flex:2;min-width:200px">
+          <div class="ig-label">Title</div>
+          <input type="text" class="pl-save-input" id="pl-save-title" placeholder="e.g. Wild Game — Moody Hero">
+        </div>
+        <div class="pl-save-group">
+          <div class="ig-label">Category</div>
+          <select class="pl-save-select" id="pl-save-cat">
+            <option value="">— Pick one —</option>
+            <option value="polish-underground">Polish Underground</option>
+            <option value="polish-outdoor">Polish Outdoor Patios</option>
+            <option value="polish-traditional">Polish Traditional</option>
+            <option value="polish-modern">Polish Modern</option>
+            <option value="italian">Italian</option>
+            <option value="tapas-tacos">Tapas &amp; Tacos</option>
+            <option value="asian">Asian</option>
+            <option value="carnivore">Carnivore</option>
+            <option value="wild-game">Wild Game</option>
+          </select>
+        </div>
+        <div class="pl-save-group">
+          <div class="ig-label">Model</div>
+          <select class="pl-save-select" id="pl-save-model">
+            <option value="flux-pro-1.1">flux-pro-1.1</option>
+            <option value="flux-dev">flux-dev</option>
+            <option value="flux-schnell">flux-schnell</option>
+            <option value="ideogram">ideogram</option>
+          </select>
+        </div>
+        <div class="pl-save-group" style="flex:0;min-width:90px">
+          <div class="ig-label">Ratio</div>
+          <select class="pl-save-select" id="pl-save-ratio">
+            <option value="1:1">1:1</option>
+            <option value="4:5">4:5</option>
+            <option value="9:16">9:16</option>
+            <option value="16:9">16:9</option>
+          </select>
+        </div>
+      </div>
+      <div class="pl-save-group">
+        <div class="ig-label">Base Prompt</div>
+        <textarea class="pl-save-ta" id="pl-save-base" placeholder="Full scene description prompt…"></textarea>
+      </div>
+      <div class="pl-save-group">
+        <div class="ig-label">Negative Prompt (optional)</div>
+        <textarea class="pl-save-ta" id="pl-save-neg" placeholder="Things to avoid…" style="min-height:48px"></textarea>
+      </div>
+      <div class="pl-save-actions">
+        <button class="pl-save-cancel" id="pl-save-cancel">Cancel</button>
+        <button class="pl-save-confirm" id="pl-save-confirm">Save Entry</button>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="pl-grid-wrap">
+      <div id="pl-count"></div>
+      <div id="pl-grid"></div>
+      <div id="pl-no-results">No prompts match the current filters.</div>
+    </div>
+
+  </div>
+</div>
     <div class="tab-panel"        id="panel-campaign" role="tabpanel" aria-labelledby="tab-campaign"></div>
     <div class="tab-panel"        id="panel-forge"    role="tabpanel" aria-labelledby="tab-forge"></div>
   </main>
+
+  <!-- Settings overlay (backdrop) -->
+  <div id="settings-overlay" aria-hidden="true"></div>
+
+  <!-- Settings drawer -->
+  <aside id="settings-drawer" role="dialog" aria-label="Settings" aria-modal="true">
+    <div class="sd-header">
+      <span class="sd-title">Settings</span>
+      <button class="sd-close" id="settings-close" aria-label="Close settings">&#x2715;</button>
+    </div>
+
+    <div class="sd-body">
+      <div class="sd-field">
+        <label>BFL API Key</label>
+        <input type="password" autocomplete="off" spellcheck="false"
+               placeholder="Paste key…" data-storage-key="pp_bfl_key">
+      </div>
+      <div class="sd-field">
+        <label>fal.ai API Key</label>
+        <input type="password" autocomplete="off" spellcheck="false"
+               placeholder="Paste key…" data-storage-key="pp_fal_key">
+      </div>
+      <div class="sd-field">
+        <label>Anthropic Key</label>
+        <input type="password" autocomplete="off" spellcheck="false"
+               placeholder="Paste key…" data-storage-key="pp_anthropic_key">
+      </div>
+      <div class="sd-field">
+        <label>OpenRouter Key</label>
+        <input type="password" autocomplete="off" spellcheck="false"
+               placeholder="Paste key…" data-storage-key="pp_openrouter_key">
+      </div>
+
+      <div class="sd-field sd-model-toggle">
+        <label>Forge Model</label>
+        <div class="toggle-group">
+          <button class="toggle-opt active" data-model="deepseek">DeepSeek V3</button>
+          <button class="toggle-opt"        data-model="haiku">Haiku</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-footer">
+      <button id="settings-save">SAVE</button>
+    </div>
+  </aside>
 
 </div>
 
@@ -396,6 +1645,63 @@
      150ms CSS transition handles the fade.
      ════════════════════════════════════════ -->
 <script>
+  // ── Global PP namespace ──────────────────────────────────────────────────
+  window.PP = window.PP || {};
+  window.PP.getKey = function(name) { return localStorage.getItem('pp_' + name + '_key') || null; };
+  window.PP.getForgeModel = function() { return localStorage.getItem('pp_forge_model') || 'deepseek'; };
+
+  // ── Settings drawer ──────────────────────────────────────────────────────
+  (function () {
+    var drawer  = document.getElementById('settings-drawer');
+    var overlay = document.getElementById('settings-overlay');
+
+    var KEYS = [
+      { storageKey: 'pp_bfl_key' },
+      { storageKey: 'pp_fal_key' },
+      { storageKey: 'pp_anthropic_key' },
+      { storageKey: 'pp_openrouter_key' }
+    ];
+
+    function loadSettingsUI() {
+      KEYS.forEach(function(k) {
+        var val   = localStorage.getItem(k.storageKey);
+        var input = document.querySelector('[data-storage-key="' + k.storageKey + '"]');
+        input.value = '';
+        input.placeholder = val ? ('••••••••' + val.slice(-4)) : 'Paste key…';
+      });
+      var model = localStorage.getItem('pp_forge_model') || 'deepseek';
+      document.querySelectorAll('.toggle-opt').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.model === model);
+      });
+    }
+
+    function openSettings()  { loadSettingsUI(); drawer.classList.add('open'); overlay.classList.add('open'); }
+    function closeSettings() { drawer.classList.remove('open'); overlay.classList.remove('open'); }
+
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+    document.getElementById('settings-close').addEventListener('click', closeSettings);
+    overlay.addEventListener('click', closeSettings);
+
+    document.getElementById('settings-save').addEventListener('click', function() {
+      KEYS.forEach(function(k) {
+        var input = document.querySelector('[data-storage-key="' + k.storageKey + '"]');
+        if (input.value.trim()) localStorage.setItem(k.storageKey, input.value.trim());
+      });
+      var activeModel = document.querySelector('.toggle-opt.active');
+      if (activeModel) localStorage.setItem('pp_forge_model', activeModel.dataset.model);
+      loadSettingsUI();
+      closeSettings();
+    });
+
+    document.querySelectorAll('.toggle-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.toggle-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+  })();
+
+  // ── Tab switching ────────────────────────────────────────────────────────
   (function () {
     const tabs   = document.querySelectorAll('#tab-nav .tab-btn');
     const panels = document.querySelectorAll('#content .tab-panel');
@@ -418,6 +1724,1157 @@
         if (targetPanel) targetPanel.classList.add('active');
       });
     });
+  })();
+
+  // ── Image Generator ──────────────────────────────────────────────────────
+  var IG_CATEGORY_PROMPTS = {
+    'polish-underground': 'Bright editorial food photography, żurek in bread bowl, natural window light, shallow depth of field f/1.8, slightly overhead, condensation on ceramic, fresh chive garnish, Kraków vaulted stone backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'polish-outdoor':     'Bright editorial food photography, grilled kiełbasa with pickles and mustard, natural golden hour sunlight, shallow depth of field f/1.8, slightly overhead, condensation on glass, fresh dill garnish, Kraków cobblestone courtyard backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'polish-traditional': 'Bright editorial food photography, bigos and pierogi on ceramic plate, natural window light, shallow depth of field f/1.8, slightly overhead, steam rising, fresh herb garnish, rustic wooden tavern surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'polish-modern':      'Bright editorial food photography, architecturally plated tasting menu course, gallery studio lighting, shallow depth of field f/1.8, slightly overhead, precise garnish, minimalist white ceramic, white dining room backdrop, hyperrealistic, travel magazine quality, no text, no people',
+    'italian':            'Bright editorial food photography, handmade pasta with black truffle, natural window light through wooden shutters, shallow depth of field f/1.8, slightly overhead, fresh basil garnish, marble table surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'tapas-tacos':        'Bright editorial food photography, abundant spread of tapas small plates, natural afternoon sunlight, shallow depth of field f/1.8, slightly overhead, vibrant colors, ceramic dishes, Spanish tile surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'asian':              'Bright editorial food photography, lacquered ramen bowl with precise toppings, neon-warm ambient glow, shallow depth of field f/1.8, slightly overhead, steam rising precisely, fresh nori and egg, dark lacquer surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'carnivore':          'Bright editorial food photography, bone-in ribeye on cast iron skillet, dramatic natural side light, shallow depth of field f/1.8, eye level, char visible, fresh rosemary garnish, dark iron surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+    'wild-game':          'Bright editorial food photography, roasted venison with forest mushrooms on rustic ceramic, natural candlelight and window light, shallow depth of field f/1.8, slightly overhead, autumn herb garnish, rustic autumn-toned wooden table backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people'
+  };
+
+  var IG_PLATFORM_RATIOS = {
+    'yt-shorts': '9:16', 'tiktok': '9:16', 'reels': '9:16',
+    'instagram': '1:1',  'pinterest': '1:1',
+    'facebook':  '4:5',
+    'yt-thumb':  '16:9', 'linkedin': '16:9'
+  };
+
+  var IG_RATIO_DIMS = {
+    '9:16': { width: 720,  height: 1280 },
+    '1:1':  { width: 1024, height: 1024 },
+    '4:5':  { width: 1024, height: 1280 },
+    '16:9': { width: 1280, height: 720  }
+  };
+
+  (function() {
+    // State
+    var igState = {
+      model: 'flux-pro-1.1',
+      category: '',
+      platform: '',
+      ratio: '1:1',
+      imageUrl: null,
+      pollTimer: null,
+      generating: false
+    };
+
+    // DOM refs
+    var canvas       = document.getElementById('ig-canvas');
+    var keyholeWrap  = document.getElementById('ig-keyhole-wrap');
+    var statusText   = document.getElementById('ig-status-text');
+    var igImage      = document.getElementById('ig-image');
+    var igFlash      = document.getElementById('ig-flash');
+    var igError      = document.getElementById('ig-error');
+    var igActions    = document.getElementById('ig-actions');
+    var igCaptionSec = document.getElementById('ig-caption-section');
+    var igCaptionTxt = document.getElementById('ig-caption-text');
+    var igCaptionLd  = document.getElementById('ig-caption-loading');
+    var generateBtn  = document.getElementById('ig-generate');
+    var promptTA     = document.getElementById('ig-prompt');
+    var categoryEl   = document.getElementById('ig-category');
+    var platformEl   = document.getElementById('ig-platform');
+
+    // Model toggle
+    document.querySelectorAll('.ig-model-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.ig-model-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        igState.model = btn.dataset.model;
+      });
+    });
+
+    // Category → populate textarea
+    categoryEl.addEventListener('change', function() {
+      igState.category = this.value;
+      if (this.value && IG_CATEGORY_PROMPTS[this.value]) {
+        promptTA.value = IG_CATEGORY_PROMPTS[this.value];
+      }
+    });
+
+    // Platform → set ratio
+    platformEl.addEventListener('change', function() {
+      igState.platform = this.value;
+      var ratio = IG_PLATFORM_RATIOS[this.value];
+      if (ratio) setRatio(ratio);
+    });
+
+    function setRatio(ratio) {
+      igState.ratio = ratio;
+      document.querySelectorAll('.ig-ratio-opt').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.ratio === ratio);
+      });
+    }
+
+    // Ratio pills
+    document.querySelectorAll('.ig-ratio-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setRatio(btn.dataset.ratio);
+      });
+    });
+
+    // Generate
+    generateBtn.addEventListener('click', function() {
+      var bflKey = PP.getKey('bfl');
+      if (!bflKey) { showError('No BFL API key — open ⚙ Settings to add one.'); return; }
+      var prompt = promptTA.value.trim();
+      if (!prompt) { promptTA.focus(); return; }
+
+      startGenerating();
+
+      var dims = IG_RATIO_DIMS[igState.ratio] || IG_RATIO_DIMS['1:1'];
+      fetch('https://api.bfl.ai/v1/' + igState.model, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + bflKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt, width: dims.width, height: dims.height })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.id) throw new Error(data.message || 'No task ID returned');
+        pollResult(data.id);
+      })
+      .catch(function(err) { showError('Generation failed: ' + err.message); stopGenerating(); });
+    });
+
+    function pollResult(taskId) {
+      var bflKey = PP.getKey('bfl');
+      fetch('https://api.bfl.ai/v1/get_result?id=' + taskId, {
+        headers: { 'Authorization': 'Bearer ' + bflKey }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'Ready' && data.result && data.result.sample) {
+          showImage(data.result.sample);
+        } else if (data.status === 'Error') {
+          showError('Generation error: ' + (data.result || 'Unknown error'));
+          stopGenerating();
+        } else {
+          igState.pollTimer = setTimeout(function() { pollResult(taskId); }, 1500);
+        }
+      })
+      .catch(function(err) { showError('Poll error: ' + err.message); stopGenerating(); });
+    }
+
+    function startGenerating() {
+      igState.generating = true;
+      igState.imageUrl = null;
+      generateBtn.disabled = true;
+      igActions.style.display = 'none';
+      igCaptionSec.style.display = 'none';
+      igError.style.display = 'none';
+      igImage.style.display = 'none';
+      igImage.classList.remove('visible');
+      keyholeWrap.style.display = 'flex';
+      canvas.classList.remove('locked');
+      canvas.classList.add('generating');
+      statusText.textContent = 'Generating…';
+    }
+
+    function stopGenerating() {
+      igState.generating = false;
+      generateBtn.disabled = false;
+      canvas.classList.remove('generating');
+      statusText.textContent = 'Ready';
+      if (igState.pollTimer) { clearTimeout(igState.pollTimer); igState.pollTimer = null; }
+    }
+
+    function showImage(url) {
+      igState.imageUrl = url;
+      canvas.classList.remove('generating');
+      canvas.classList.add('locked');
+      statusText.textContent = 'Done';
+
+      setTimeout(function() {
+        igFlash.classList.add('visible');
+        setTimeout(function() {
+          igFlash.classList.remove('visible');
+          keyholeWrap.style.display = 'none';
+          igImage.src = url;
+          igImage.style.display = 'block';
+          setTimeout(function() { igImage.classList.add('visible'); }, 20);
+          igActions.style.display = 'flex';
+          igCaptionSec.style.display = 'flex';
+          stopGenerating();
+          generateCaption(getActiveTone());
+        }, 200);
+      }, 350);
+    }
+
+    function showError(msg) {
+      keyholeWrap.style.display = 'flex';
+      canvas.classList.remove('generating', 'locked');
+      igError.textContent = msg;
+      igError.style.display = 'block';
+      statusText.textContent = 'Error';
+    }
+
+    // Action buttons
+    document.getElementById('ig-download').addEventListener('click', function() {
+      if (!igState.imageUrl) return;
+      var a = document.createElement('a');
+      a.href = igState.imageUrl;
+      a.download = 'pp-' + (igState.category || 'image') + '-' + igState.model + '-' + Date.now() + '.jpg';
+      a.target = '_blank';
+      a.click();
+    });
+
+    document.getElementById('ig-copy-prompt').addEventListener('click', function() {
+      var btn = this;
+      navigator.clipboard.writeText(promptTA.value).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy Prompt'; }, 1500);
+      });
+    });
+
+    document.getElementById('ig-send-video').addEventListener('click', function() {
+      window.PP.videoContext = {
+        imageUrl: igState.imageUrl,
+        prompt: promptTA.value,
+        category: igState.category,
+        platform: igState.platform,
+        ratio: igState.ratio
+      };
+      var videoTab = document.querySelector('[data-tab="video"]');
+      if (videoTab) videoTab.click();
+    });
+
+    // Caption
+    function getActiveTone() {
+      var active = document.querySelector('.ig-tone-opt.active');
+      return active ? active.dataset.tone : 'punchy';
+    }
+
+    function generateCaption(tone) {
+      var anthropicKey = PP.getKey('anthropic');
+      if (!anthropicKey) {
+        igCaptionTxt.textContent = 'Anthropic API key not set — open ⚙ Settings to enable captions.';
+        return;
+      }
+
+      igCaptionLd.style.display = 'block';
+      igCaptionTxt.textContent = '';
+
+      var catLabel = categoryEl.options[categoryEl.selectedIndex]
+        ? categoryEl.options[categoryEl.selectedIndex].text : igState.category;
+      var platLabel = platformEl.options[platformEl.selectedIndex]
+        ? platformEl.options[platformEl.selectedIndex].text : igState.platform;
+
+      var toneInstructions = {
+        punchy:    'Short, bold, 1-2 lines max, strong hook, high energy.',
+        editorial: 'Descriptive, magazine-worthy prose, 2-3 sentences.',
+        story:     'Narrative and personal, 3-4 sentences with sensory detail and emotion.'
+      };
+
+      var userMsg = 'Write a social media caption for a food image.\n\n'
+        + 'Category: ' + catLabel + '\n'
+        + 'Platform: ' + platLabel + '\n'
+        + 'Aspect ratio: ' + igState.ratio + '\n'
+        + 'Image model: ' + igState.model + '\n'
+        + 'Scene description: ' + promptTA.value + '\n\n'
+        + 'Tone: ' + tone + ' — ' + toneInstructions[tone] + '\n\n'
+        + 'Include relevant emojis and 3-5 hashtags. Return only the caption text, nothing else.';
+
+      fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 512,
+          system: 'You are a social media copywriter for Pace & Platter, an upscale restaurant group known for bold food photography and editorial content.',
+          messages: [{ role: 'user', content: userMsg }]
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        igCaptionLd.style.display = 'none';
+        if (data.content && data.content[0]) {
+          igCaptionTxt.textContent = data.content[0].text;
+        } else {
+          igCaptionTxt.textContent = 'Caption generation failed.';
+        }
+      })
+      .catch(function(err) {
+        igCaptionLd.style.display = 'none';
+        igCaptionTxt.textContent = 'Caption error: ' + err.message;
+      });
+    }
+
+    // Tone buttons
+    document.querySelectorAll('.ig-tone-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.ig-tone-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        if (igState.imageUrl) generateCaption(btn.dataset.tone);
+      });
+    });
+
+    // Regenerate
+    document.getElementById('ig-regen-caption').addEventListener('click', function() {
+      generateCaption(getActiveTone());
+    });
+  })();
+
+  // ── Video Generator ──────────────────────────────────────────────────────
+  var VG_MOTION_PROMPTS = {
+    'polish-underground': 'slow push through candlelit vaulted stone arch, dust motes in warm light, medieval brick texture reveal',
+    'polish-outdoor':     'aerial pull back revealing cobblestone courtyard, linen parasols, golden hour flare',
+    'polish-traditional': 'rack focus from hands to steaming bowl of bigos, hearth fire flicker in background',
+    'polish-modern':      'clean lateral slide across architectural plating, gallery white, precise steam rising',
+    'italian':            'slow dolly into handmade pasta, sun through wooden shutters, truffle shaved in slow motion',
+    'tapas-tacos':        'wide establishing shot of abundant spread, handheld energy, afternoon ceramic tile courtyard',
+    'asian':              'vertical slow push into lacquered ramen bowl, precise steam physics, neon-warm ambient glow',
+    'carnivore':          'dramatic side-lit push into bone-in ribeye on cast iron, char and flame visible at frame edge',
+    'wild-game':          'contemplative pan across rustic autumn table, candlelight flicker, forest textures in background'
+  };
+
+  // Fallback captions: VG_FALLBACK[category][platform]
+  var VG_FALLBACK = {
+    'polish-underground': {
+      'yt-shorts':  "Kraków has been hiding its best tables underground for 800 years. We found them. 60 seconds.\n#krakow #polandtravel #foodtravel #paceandplatters",
+      'tiktok':     "Stop scrolling. This 800-year-old cellar just changed the way we eat in Kraków.\n#krakowtok #traveltok #foodtok #polandtravel #underground",
+      'reels':      "When the best dining room is actually a medieval vault. 60 seconds to book.\n#krakowreels #polandtravel #foodie #reels #travelgram",
+      'instagram':  "Vaulted ceilings. Candlelight. The best żurek you'll ever have. Booked in 60 seconds.\n#krakowfood #polishfood #foodie #travelgram #eatlocal",
+      'pinterest':  "Underground dining in Kraków — where 800-year-old stone vaults become the most atmospheric restaurants in Europe.\n#krakowfood #polishfood #travelinspiration #foodphotography",
+      'facebook':   "Kraków's underground dining scene is unlike anywhere else in Europe. Centuries-old vaults, candlelight, and the best żurek you'll ever eat. Tag someone who needs to know.\n#krakow #polandtravel #foodtravel",
+      'yt-thumb':   "Kraków's Secret Underground Restaurants — 60 Seconds to Book\n#krakow #foodtravel #polandtravel",
+      'linkedin':   "Kraków's underground restaurant scene represents centuries of hospitality culture. Here's why food tourism is changing how travelers experience Poland.\n#foodtravel #hospitality #travel #poland"
+    },
+    'polish-outdoor': {
+      'yt-shorts':  "Aerial pull back. Cobblestone. Linen parasols. Golden hour. This is how you eat in Kraków.\n#krakow #outdoordining #traveltok #polandtravel",
+      'tiktok':     "The most beautiful patio in Kraków and no one's talking about it.\n#krakowtok #outdoordining #traveltok #foodtok #goldenhoureats",
+      'reels':      "Golden hour, cobblestones, and the best kiełbasa you'll find outside someone's grandmother's kitchen.\n#krakowreels #polandtravel #outdoordining #foodie",
+      'instagram':  "Linen parasols. Cobblestone courtyard. The golden hour you came to Europe for.\n#krakowfood #outdoordining #travelgram #polishfood #foodie",
+      'pinterest':  "Outdoor dining in Kraków — cobblestone courtyards and golden hour light make every meal an event.\n#krakowfood #outdoordining #travelinspiration #europefood",
+      'facebook':   "The best outdoor dining in Kraków isn't the one with the most reviews. It's the one with the best light.\n#krakow #outdoordining #polandtravel #foodtravel",
+      'yt-thumb':   "Kraków's Best Outdoor Patios — Golden Hour Dining Guide\n#krakow #outdoordining #polandtravel",
+      'linkedin':   "Al fresco dining culture in Poland's most beautiful city. How Kraków's outdoor restaurant scene is drawing international food travelers.\n#foodtravel #hospitality #krakow"
+    },
+    'polish-traditional': {
+      'yt-shorts':  "Rack focus. Steaming bigos. Hearth fire. This is Polish food at its most honest.\n#polishfood #krakow #traveltok #foodtravel",
+      'tiktok':     "Your grandmother's kitchen, but make it a restaurant. Bigos and pierogi that will ruin all future Polish food for you.\n#polishfoodtok #traveltok #foodtok #krakow",
+      'reels':      "Slow food. Old recipes. The kind of bigos that takes three days to make. Worth every second.\n#krakowreels #polishfood #traditionalpoles #foodie",
+      'instagram':  "Bigos braised for days. Pierogi folded by hand. This is Polish food the way it was meant to be eaten.\n#polishfood #krakowfood #travelgram #foodie #eatlocal",
+      'pinterest':  "Traditional Polish cuisine at its finest — slow-braised bigos, hand-folded pierogi, and decades of family recipes.\n#polishfood #krakowfood #traditionalkitchen #foodphotography",
+      'facebook':   "The best pierogi in Kraków come from kitchens that have been making the same recipe for generations. Here's where to find them.\n#polishfood #krakow #foodtravel #pierogi",
+      'yt-thumb':   "Best Traditional Polish Food in Kraków — Bigos & Pierogi Guide\n#polishfood #krakow #foodtravel",
+      'linkedin':   "Traditional Polish cuisine is one of Europe's most underrated food stories. How Kraków's restaurants are preserving centuries of culinary heritage.\n#foodculture #hospitality #poland"
+    },
+    'polish-modern': {
+      'yt-shorts':  "Clean lateral slide. Gallery white. Architectural plating. Polish fine dining has arrived.\n#polishfinedining #krakow #foodtravel #modernfood",
+      'tiktok':     "Modern Polish cuisine just changed what we think fine dining looks like in Central Europe.\n#foodtok #finedining #krakow #traveltok #polishfood",
+      'reels':      "When Polish cuisine meets gallery aesthetics. This tasting menu is unlike anything in Central Europe.\n#krakowreels #finedining #modernpolish #foodie",
+      'instagram':  "Gallery white. Architectural plating. Precision steam. Modern Polish cuisine at its most refined.\n#krakowfood #finedining #modernpolish #travelgram #foodie",
+      'pinterest':  "Modern Polish fine dining — where centuries of culinary tradition meet architectural plating and gallery-worthy presentation.\n#polishfinedining #krakowfood #finedining #foodphotography",
+      'facebook':   "Polish cuisine has a new face — and it's being plated in gallery-white dining rooms in Kraków. Here's what modern Polish fine dining looks like.\n#polishfood #finedining #krakow #foodtravel",
+      'yt-thumb':   "Modern Polish Fine Dining in Kraków — The New Wave\n#polishfinedining #krakow #foodtravel",
+      'linkedin':   "Poland's modern fine dining scene is reshaping how the world perceives Central European cuisine. Kraków's tasting menus are the ones to watch.\n#finedining #foodculture #hospitality"
+    },
+    'italian': {
+      'yt-shorts':  "Slow dolly into handmade pasta. Truffle shaved in slow motion. Sun through wooden shutters. Italy.\n#italianfood #pasta #foodtravel #foodfilm",
+      'tiktok':     "The truffle pasta that made us forget every other pasta we've ever eaten.\n#foodtok #pasta #italianfood #traveltok #trufflepasta",
+      'reels':      "Handmade pasta, black truffle, and afternoon light through wooden shutters. That's the whole story.\n#italianfood #pastaReels #foodie #travelgram #trufflepasta",
+      'instagram':  "Sun through wooden shutters. Black truffle shaved tableside. Handmade pasta that took all morning.\n#italianfood #pasta #travelgram #foodie #trufflepasta",
+      'pinterest':  "Handmade pasta with black truffle — the kind of Italian food that makes you want to learn the language just to order it properly.\n#italianfood #pasta #foodphotography #travelinspiration",
+      'facebook':   "The best handmade pasta we've ever photographed. Black truffle, afternoon light, and hours of work in every plate. Here's the story.\n#italianfood #pasta #foodtravel #trufflepasta",
+      'yt-thumb':   "Handmade Pasta & Black Truffle — The Italian Food Film\n#italianfood #pasta #foodtravel",
+      'linkedin':   "Italian culinary tradition meets editorial food photography. How handmade pasta tells the story of regional food culture better than any review.\n#foodculture #hospitality #italianfood"
+    },
+    'tapas-tacos': {
+      'yt-shorts':  "Wide establishing shot. Abundant spread. Handheld energy. This is how a meal becomes a party.\n#tapas #tacos #foodtravel #foodfilm",
+      'tiktok':     "More tapas than you can eat. More tacos than you should order. We ordered both.\n#foodtok #tapas #tacos #traveltok #spreadgoals",
+      'reels':      "The kind of spread that makes everyone at the table forget their phones. Almost.\n#tapasreels #tacos #foodie #travelgram #spreadgoals",
+      'instagram':  "Abundant. Vibrant. Impossible to finish. The spread that made us stay three hours past our reservation.\n#tapas #tacos #travelgram #foodie #spreadgoals",
+      'pinterest':  "Tapas and tacos — vibrant small plates, ceramic dishes, and the kind of afternoon that stretches into evening.\n#tapas #tacos #foodphotography #travelinspiration",
+      'facebook':   "The spread that turned a lunch into a three-hour event. Tapas, tacos, and the best afternoon in recent memory.\n#tapas #tacos #foodtravel #smallplates",
+      'yt-thumb':   "Tapas & Tacos Spread — The Ultimate Small Plates Film\n#tapas #tacos #foodtravel",
+      'linkedin':   "Small plate culture is reshaping how diners engage with food. Here's why tapas and tacos are leading the social dining revolution.\n#foodculture #hospitality #smallplates"
+    },
+    'asian': {
+      'yt-shorts':  "Vertical slow push. Lacquered ramen bowl. Precise steam physics. Neon glow. This is the bowl.\n#ramen #asianfood #foodfilm #foodtravel",
+      'tiktok':     "The ramen bowl that broke the internet in our kitchen. Neon glow, precise toppings, steam that actually rises perfectly.\n#ramentrip #foodtok #traveltok #asianfood",
+      'reels':      "Precise steam. Perfect toppings. The lacquered ramen bowl that made us immediately plan a return trip.\n#ramenreels #asianfood #foodie #travelgram",
+      'instagram':  "Lacquered bowl. Precise nori. Steam that rises exactly right. The ramen that started an obsession.\n#ramen #asianfood #travelgram #foodie #noodletime",
+      'pinterest':  "Asian food photography at its most precise — a lacquered ramen bowl, rising steam, and neon-warm ambient light.\n#ramen #asianfood #foodphotography #travelinspiration",
+      'facebook':   "The lacquered ramen bowl that made us immediately look up return flights. Precise toppings, perfect steam, and a glow you can't quite explain.\n#ramen #asianfood #foodtravel",
+      'yt-thumb':   "The Perfect Ramen Bowl — Asian Food Film\n#ramen #asianfood #foodtravel",
+      'linkedin':   "Asian culinary precision as editorial subject — how ramen photography is elevating food storytelling across social platforms.\n#foodculture #contentmarketing #asianfood"
+    },
+    'carnivore': {
+      'yt-shorts':  "Dramatic side light. Bone-in ribeye. Cast iron. Char and flame at the frame edge. This is the steak.\n#steak #carnivore #foodfilm #foodtravel",
+      'tiktok':     "The ribeye that made vegetarians reconsider everything. Bone-in, cast iron, char visible at every edge.\n#foodtok #steak #carnivore #ribeyeseason #traveltok",
+      'reels':      "Bone-in ribeye on cast iron. Dramatic side light. Char you can almost smell through the screen.\n#steakreels #carnivore #foodie #travelgram #ribeyelovers",
+      'instagram':  "Bone-in. Cast iron. Side-lit. The ribeye that answers every question you've ever had about dinner.\n#steak #carnivore #travelgram #foodie #ribeye",
+      'pinterest':  "Cast iron ribeye photography — dramatic side lighting, visible char, and the kind of steak that makes every other dinner a reference point.\n#steak #carnivore #foodphotography #castironcooking",
+      'facebook':   "The bone-in ribeye on cast iron that we're still thinking about. Dramatic light, perfect char, and a rosemary garnish that was absolutely not just for the photo.\n#steak #carnivore #foodtravel #ribeye",
+      'yt-thumb':   "Bone-In Ribeye on Cast Iron — The Steak Film\n#steak #carnivore #foodtravel",
+      'linkedin':   "Carnivore dining as premium food content — how dramatic food photography is changing how steakhouses market to the next generation of diners.\n#foodculture #contentmarketing #finedining"
+    },
+    'wild-game': {
+      'yt-shorts':  "Contemplative pan. Rustic table. Candlelight flicker. Forest textures in the background. This is wild game.\n#wildgame #venison #foodfilm #foodtravel",
+      'tiktok':     "Roasted venison with forest mushrooms. Candlelight. Autumn colors. The fall dinner you didn't know you needed.\n#wildgametok #venison #foodtok #traveltok #autumnfood",
+      'reels':      "Venison from the forest to the table. Rustic ceramic, autumn mushrooms, and candlelight that makes everything feel like a folk story.\n#wildgamereels #venison #foodie #travelgram",
+      'instagram':  "Venison. Forest mushrooms. Candlelight. The autumn dinner that tastes like a fairy tale.\n#wildgame #venison #travelgram #foodie #autumneats",
+      'pinterest':  "Wild game dining at its most atmospheric — roasted venison with forest mushrooms, rustic ceramic, and autumn candlelight.\n#wildgame #venison #foodphotography #autumnfood",
+      'facebook':   "The roasted venison with forest mushrooms that made us want to move somewhere with a fireplace and a forest nearby.\n#wildgame #venison #foodtravel #autumneats",
+      'yt-thumb':   "Roasted Venison & Forest Mushrooms — Wild Game Food Film\n#wildgame #venison #foodtravel",
+      'linkedin':   "Wild game dining as a storytelling vehicle — how seasonal, foraged, and hunted food is becoming the next frontier of premium restaurant content.\n#foodculture #contentmarketing #wildgame"
+    }
+  };
+
+  (function() {
+    var vgState = {
+      imageUrl:   null,
+      engine:     'kling',
+      duration:   5,
+      category:   '',
+      platform:   '',
+      videoUrl:   null,
+      pollTimer:  null,
+      generating: false
+    };
+
+    // DOM refs
+    var canvas       = document.getElementById('vg-canvas');
+    var cityWrap     = document.getElementById('vg-city-wrap');
+    var statusText   = document.getElementById('vg-status-text');
+    var vgVideo      = document.getElementById('vg-video');
+    var vgError      = document.getElementById('vg-error');
+    var vgActions    = document.getElementById('vg-actions');
+    var vgCaptionSec = document.getElementById('vg-caption-section');
+    var vgCaptionTxt = document.getElementById('vg-caption-text');
+    var vgCaptionLd  = document.getElementById('vg-caption-loading');
+    var generateBtn  = document.getElementById('vg-generate');
+    var promptTA     = document.getElementById('vg-prompt');
+    var categoryEl   = document.getElementById('vg-category');
+    var templateEl   = document.getElementById('vg-template');
+    var dropzone     = document.getElementById('vg-dropzone');
+    var dzThumb      = document.getElementById('vg-dropzone-thumb');
+    var dzPlaceholder= document.getElementById('vg-dropzone-placeholder');
+    var dzClear      = document.getElementById('vg-dropzone-clear');
+    var fileInput    = document.getElementById('vg-file-input');
+    var urlInput     = document.getElementById('vg-url-input');
+
+    // ── On Video tab activate: ingest PP.videoContext ────────────────────────
+    document.querySelector('[data-tab="video"]').addEventListener('click', function() {
+      var ctx = window.PP.videoContext;
+      if (ctx && ctx.imageUrl) {
+        setImage(ctx.imageUrl);
+        if (ctx.category) {
+          categoryEl.value = ctx.category;
+          vgState.category = ctx.category;
+          if (VG_MOTION_PROMPTS[ctx.category]) {
+            templateEl.value = ctx.category;
+            promptTA.value = VG_MOTION_PROMPTS[ctx.category];
+          }
+        }
+        if (ctx.platform) vgState.platform = ctx.platform;
+        window.PP.videoContext = null;
+      }
+    });
+
+    // ── Image input ──────────────────────────────────────────────────────────
+    function setImage(url) {
+      vgState.imageUrl = url;
+      dzThumb.src = url;
+      dzThumb.style.display = 'block';
+      setTimeout(function() { dzThumb.classList.add('visible'); }, 20);
+      dzPlaceholder.style.display = 'none';
+      dzClear.style.display = 'flex';
+      dropzone.classList.add('filled');
+    }
+
+    function clearImage() {
+      vgState.imageUrl = null;
+      dzThumb.classList.remove('visible');
+      dzThumb.style.display = 'none';
+      dzThumb.src = '';
+      dzPlaceholder.style.display = 'flex';
+      dzClear.style.display = 'none';
+      dropzone.classList.remove('filled');
+      urlInput.value = '';
+    }
+
+    dzClear.addEventListener('click', clearImage);
+
+    // File upload
+    document.getElementById('vg-upload-btn').addEventListener('click', function() {
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', function() {
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) { setImage(e.target.result); };
+      reader.readAsDataURL(file);
+    });
+
+    // URL paste
+    document.getElementById('vg-url-set').addEventListener('click', function() {
+      var u = urlInput.value.trim();
+      if (u) setImage(u);
+    });
+    urlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { var u = this.value.trim(); if (u) setImage(u); }
+    });
+
+    // Drag-and-drop onto dropzone
+    dropzone.addEventListener('dragover', function(e) {
+      e.preventDefault(); dropzone.classList.add('drag-over');
+    });
+    dropzone.addEventListener('dragleave', function() {
+      dropzone.classList.remove('drag-over');
+    });
+    dropzone.addEventListener('drop', function(e) {
+      e.preventDefault(); dropzone.classList.remove('drag-over');
+      var file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        var reader = new FileReader();
+        reader.onload = function(ev) { setImage(ev.target.result); };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // ── Category & template selects ──────────────────────────────────────────
+    categoryEl.addEventListener('change', function() {
+      vgState.category = this.value;
+      if (this.value && VG_MOTION_PROMPTS[this.value]) {
+        templateEl.value = this.value;
+        promptTA.value = VG_MOTION_PROMPTS[this.value];
+      }
+    });
+    templateEl.addEventListener('change', function() {
+      if (this.value && VG_MOTION_PROMPTS[this.value]) {
+        promptTA.value = VG_MOTION_PROMPTS[this.value];
+      }
+    });
+
+    // ── Duration pills ───────────────────────────────────────────────────────
+    document.querySelectorAll('.vg-dur-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.vg-dur-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        vgState.duration = parseInt(btn.dataset.dur, 10);
+      });
+    });
+
+    // ── Engine toggle ────────────────────────────────────────────────────────
+    document.querySelectorAll('.vg-eng-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.vg-eng-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        vgState.engine = btn.dataset.engine;
+      });
+    });
+
+    // ── Generate ─────────────────────────────────────────────────────────────
+    generateBtn.addEventListener('click', function() {
+      var falKey = PP.getKey('fal');
+      if (!falKey) { showVgError('No fal.ai API key — open Settings to add one.'); return; }
+      if (!vgState.imageUrl) { dropzone.style.borderColor = 'var(--crimson)'; setTimeout(function() { dropzone.style.borderColor = ''; }, 1500); return; }
+      var prompt = promptTA.value.trim();
+      if (!prompt) { promptTA.focus(); return; }
+
+      startGenerating();
+
+      var endpoint, body;
+      if (vgState.engine === 'kling') {
+        endpoint = 'fal-ai/kling-video/v2.1/standard/image-to-video';
+        body = {
+          image_url:    vgState.imageUrl,
+          prompt:       prompt,
+          duration:     String(vgState.duration),
+          aspect_ratio: '16:9'
+        };
+      } else {
+        endpoint = 'fal-ai/runway-gen4/turbo';
+        body = {
+          image_url:   vgState.imageUrl,
+          prompt_text: prompt,
+          duration:    vgState.duration,
+          ratio:       '1280:720'
+        };
+      }
+
+      fetch('https://queue.fal.run/' + endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Key ' + falKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.request_id) throw new Error(data.message || data.detail || 'No request ID returned');
+        pollVgResult(endpoint, data.request_id);
+      })
+      .catch(function(err) { showVgError('Submit failed: ' + err.message); stopGenerating(); });
+    });
+
+    // ── Polling (fal.ai queue) ───────────────────────────────────────────────
+    function pollVgResult(endpoint, requestId) {
+      var falKey = PP.getKey('fal');
+      fetch('https://queue.fal.run/' + endpoint + '/requests/' + requestId + '/status', {
+        headers: { 'Authorization': 'Key ' + falKey }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'COMPLETED') {
+          return fetch('https://queue.fal.run/' + endpoint + '/requests/' + requestId, {
+            headers: { 'Authorization': 'Key ' + falKey }
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(result) {
+            var url = result.video && result.video.url;
+            if (url) showVideo(url);
+            else throw new Error('No video URL in result');
+          });
+        } else if (data.status === 'FAILED') {
+          throw new Error(data.error || 'Generation failed');
+        } else {
+          vgState.pollTimer = setTimeout(function() { pollVgResult(endpoint, requestId); }, 2000);
+        }
+      })
+      .catch(function(err) { showVgError('Error: ' + err.message); stopGenerating(); });
+    }
+
+    // ── State transitions ────────────────────────────────────────────────────
+    function startGenerating() {
+      vgState.generating = true;
+      vgState.videoUrl = null;
+      generateBtn.disabled = true;
+      vgActions.style.display = 'none';
+      vgCaptionSec.style.display = 'none';
+      vgError.style.display = 'none';
+      vgVideo.style.display = 'none';
+      vgVideo.classList.remove('visible');
+      cityWrap.style.display = 'flex';
+      canvas.classList.remove('done');
+      canvas.classList.add('generating');
+      statusText.textContent = 'Generating\u2026';
+    }
+
+    function stopGenerating() {
+      vgState.generating = false;
+      generateBtn.disabled = false;
+      canvas.classList.remove('generating');
+      if (vgState.pollTimer) { clearTimeout(vgState.pollTimer); vgState.pollTimer = null; }
+    }
+
+    function showVideo(url) {
+      vgState.videoUrl = url;
+      canvas.classList.remove('generating');
+      canvas.classList.add('done');
+      statusText.textContent = 'Done';
+      cityWrap.style.display = 'none';
+      vgVideo.src = url;
+      vgVideo.style.display = 'block';
+      setTimeout(function() { vgVideo.classList.add('visible'); }, 20);
+      vgActions.style.display = 'flex';
+      vgCaptionSec.style.display = 'flex';
+      stopGenerating();
+      generateVgCaption(getVgActiveTone());
+    }
+
+    function showVgError(msg) {
+      cityWrap.style.display = 'flex';
+      canvas.classList.remove('generating', 'done');
+      vgError.textContent = msg;
+      vgError.style.display = 'block';
+      statusText.textContent = 'Error';
+      stopGenerating();
+    }
+
+    // ── Action buttons ───────────────────────────────────────────────────────
+    document.getElementById('vg-download').addEventListener('click', function() {
+      if (!vgState.videoUrl) return;
+      var a = document.createElement('a');
+      a.href = vgState.videoUrl;
+      a.download = 'pp-' + (vgState.category || 'video') + '-' + vgState.engine + '-' + Date.now() + '.mp4';
+      a.target = '_blank';
+      a.click();
+    });
+
+    document.getElementById('vg-copy-prompt').addEventListener('click', function() {
+      var btn = this;
+      navigator.clipboard.writeText(promptTA.value).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy Prompt'; }, 1500);
+      });
+    });
+
+    // ── Caption generation ───────────────────────────────────────────────────
+    function getVgActiveTone() {
+      var active = document.querySelector('#vg-tone-group .ig-tone-opt.active');
+      return active ? active.dataset.tone : 'punchy';
+    }
+
+    function generateVgCaption(tone) {
+      var anthropicKey = PP.getKey('anthropic');
+      if (!anthropicKey) {
+        var fallback = VG_FALLBACK[vgState.category] && VG_FALLBACK[vgState.category][vgState.platform];
+        vgCaptionTxt.textContent = fallback
+          || 'Anthropic API key not set — open Settings to enable AI captions.';
+        return;
+      }
+
+      vgCaptionLd.style.display = 'block';
+      vgCaptionTxt.textContent = '';
+
+      var catLabel  = categoryEl.options[categoryEl.selectedIndex].text;
+      var toneInstr = {
+        punchy:    'Short, bold, 1-2 lines max, strong hook, high energy.',
+        editorial: 'Descriptive, magazine-worthy prose, 2-3 sentences.',
+        story:     'Narrative and personal, 3-4 sentences with sensory detail and emotion.'
+      };
+
+      var userMsg = 'Write a social media caption for a food video.\n\n'
+        + 'Category: ' + catLabel + '\n'
+        + 'Engine: ' + vgState.engine + '\n'
+        + 'Duration: ' + vgState.duration + 's\n'
+        + 'Motion prompt: ' + promptTA.value + '\n\n'
+        + 'Tone: ' + tone + ' \u2014 ' + toneInstr[tone] + '\n\n'
+        + 'Include relevant emojis and 3-5 hashtags. Return only the caption text, nothing else.';
+
+      fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 512,
+          system: 'You are a social media copywriter for Pace & Platter, an upscale restaurant group known for bold food photography and editorial content.',
+          messages: [{ role: 'user', content: userMsg }]
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        vgCaptionLd.style.display = 'none';
+        vgCaptionTxt.textContent = (data.content && data.content[0])
+          ? data.content[0].text
+          : 'Caption generation failed.';
+      })
+      .catch(function(err) {
+        vgCaptionLd.style.display = 'none';
+        vgCaptionTxt.textContent = 'Caption error: ' + err.message;
+      });
+    }
+
+    // Tone buttons
+    document.querySelectorAll('#vg-tone-group .ig-tone-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#vg-tone-group .ig-tone-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        if (vgState.videoUrl) generateVgCaption(btn.dataset.tone);
+      });
+    });
+
+    // Regenerate
+    document.getElementById('vg-regen-caption').addEventListener('click', function() {
+      generateVgCaption(getVgActiveTone());
+    });
+
+  })();
+
+  // ── Prompt Library ───────────────────────────────────────────────────────
+  var PL_ENTRIES = [
+    // ── Polish Underground ──
+    { id:'polish-underground-hero', category:'polish-underground', categoryLabel:'Polish Underground',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, \u017curek in bread bowl, natural window light, shallow depth of field f/1.8, slightly overhead, condensation on ceramic, fresh chive garnish, Krak\u00f3w vaulted stone backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'polish-underground-lifestyle', category:'polish-underground', categoryLabel:'Polish Underground',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Young couple, golden hour light filtering into candlelit vaulted stone cellar, medieval brick arches, laughing, food arriving at table, no phones visible, candid travel magazine aesthetic, warm saturated tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'polish-underground-app-demo', category:'polish-underground', categoryLabel:'Polish Underground',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Polish Underground selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'polish-underground-text-overlay', category:'polish-underground', categoryLabel:'Polish Underground',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Lock In.', near-black background, crimson accent, cream type, vaulted cellar silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API \u2014 Flux cannot reliably render text. Use for Reels/Shorts/TikTok' },
+
+    // ── Polish Outdoor Patios ──
+    { id:'polish-outdoor-hero', category:'polish-outdoor', categoryLabel:'Polish Outdoor Patios',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, grilled kie\u0142basa with pickles and mustard, natural golden hour sunlight, shallow depth of field f/1.8, slightly overhead, condensation on glass, fresh dill garnish, Krak\u00f3w cobblestone courtyard backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'polish-outdoor-lifestyle', category:'polish-outdoor', categoryLabel:'Polish Outdoor Patios',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Group of four friends, golden hour, sun-drenched Krak\u00f3w cobblestone courtyard with linen parasols, laughing, food arriving at table, no phones visible, candid travel magazine aesthetic, warm saturated tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'polish-outdoor-app-demo', category:'polish-outdoor', categoryLabel:'Polish Outdoor Patios',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Polish Outdoor Patios selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'polish-outdoor-text-overlay', category:'polish-outdoor', categoryLabel:'Polish Outdoor Patios',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Don't Waste Time.', near-black background, crimson accent, cream type, cobblestone courtyard silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Polish Traditional ──
+    { id:'polish-traditional-hero', category:'polish-traditional', categoryLabel:'Polish Traditional',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, bigos and pierogi on ceramic plate, natural window light, shallow depth of field f/1.8, slightly overhead, steam rising, fresh herb garnish, rustic wooden tavern surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'polish-traditional-lifestyle', category:'polish-traditional', categoryLabel:'Polish Traditional',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Solo traveler, golden hour, rustic Polish wooden tavern interior with ceramic and linen, smiling, food arriving at table, no phones visible, candid travel magazine aesthetic, warm saturated tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'polish-traditional-app-demo', category:'polish-traditional', categoryLabel:'Polish Traditional',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Polish Traditional selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'polish-traditional-text-overlay', category:'polish-traditional', categoryLabel:'Polish Traditional',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'The Best Food.', near-black background, crimson accent, cream type, traditional tavern silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Polish Modern ──
+    { id:'polish-modern-hero', category:'polish-modern', categoryLabel:'Polish Modern',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, architecturally plated tasting menu course, gallery studio lighting, shallow depth of field f/1.8, slightly overhead, precise garnish, minimalist white ceramic, white dining room backdrop, hyperrealistic, travel magazine quality, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, dark or moody, rustic',
+      note:'Hero asset for Instagram grid and LinkedIn' },
+    { id:'polish-modern-lifestyle', category:'polish-modern', categoryLabel:'Polish Modern',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Young couple, gallery-bright modern dining room, clean architectural lines, laughing, food arriving at table, no phones visible, candid travel magazine aesthetic, warm tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and LinkedIn' },
+    { id:'polish-modern-app-demo', category:'polish-modern', categoryLabel:'Polish Modern',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Polish Modern selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'polish-modern-text-overlay', category:'polish-modern', categoryLabel:'Polish Modern',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type '60 Seconds.', near-black background, crimson accent, cream type, modern plating silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Italian ──
+    { id:'italian-hero', category:'italian', categoryLabel:'Italian',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, handmade pasta with black truffle, natural window light through wooden shutters, shallow depth of field f/1.8, slightly overhead, fresh basil garnish, marble table surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'italian-lifestyle', category:'italian', categoryLabel:'Italian',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Young couple, golden afternoon sun through wooden shutters, Italian restaurant marble interior, laughing, pasta arriving at table, no phones visible, candid travel magazine aesthetic, warm saturated tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'italian-app-demo', category:'italian', categoryLabel:'Italian',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Italian selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'italian-text-overlay', category:'italian', categoryLabel:'Italian',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Just Eat.', near-black background, crimson accent, cream type, pasta silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Tapas & Tacos ──
+    { id:'tapas-tacos-hero', category:'tapas-tacos', categoryLabel:'Tapas & Tacos',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, abundant spread of tapas small plates, natural afternoon sunlight, shallow depth of field f/1.8, slightly overhead, vibrant colors, ceramic dishes, Spanish tile surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'tapas-tacos-lifestyle', category:'tapas-tacos', categoryLabel:'Tapas & Tacos',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Group of four friends, afternoon sun, Spanish ceramic tile courtyard, laughing, abundant spread of small plates arriving, no phones visible, candid travel magazine aesthetic, vibrant warm tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'tapas-tacos-app-demo', category:'tapas-tacos', categoryLabel:'Tapas & Tacos',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Tapas & Tacos selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'tapas-tacos-text-overlay', category:'tapas-tacos', categoryLabel:'Tapas & Tacos',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Stop Reading Reviews.', near-black background, crimson accent, cream type, tapas spread silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Asian ──
+    { id:'asian-hero', category:'asian', categoryLabel:'Asian',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, lacquered ramen bowl with precise toppings, neon-warm ambient glow, shallow depth of field f/1.8, slightly overhead, steam rising precisely, fresh nori and egg, dark lacquer surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, cold light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'asian-lifestyle', category:'asian', categoryLabel:'Asian',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Solo traveler, warm neon-adjacent glow, Asian restaurant with lacquer and precision, smiling, ramen arriving at table, no phones visible, candid travel magazine aesthetic, warm tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'asian-app-demo', category:'asian', categoryLabel:'Asian',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Asian selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'asian-text-overlay', category:'asian', categoryLabel:'Asian',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Lock In.', near-black background, crimson accent, cream type, ramen bowl silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Carnivore ──
+    { id:'carnivore-hero', category:'carnivore', categoryLabel:'Carnivore',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, bone-in ribeye on cast iron skillet, dramatic natural side light, shallow depth of field f/1.8, eye level, char visible, fresh rosemary garnish, dark iron surface backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, flat light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'carnivore-lifestyle', category:'carnivore', categoryLabel:'Carnivore',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Group of friends, dramatic warm side light, Krak\u00f3w steakhouse interior with cast iron and dark wood, laughing, massive ribeye arriving at table, no phones visible, candid travel magazine aesthetic, warm tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'carnivore-app-demo', category:'carnivore', categoryLabel:'Carnivore',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Carnivore selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'carnivore-text-overlay', category:'carnivore', categoryLabel:'Carnivore',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'The Best Food.', near-black background, crimson accent, cream type, ribeye silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' },
+
+    // ── Wild Game ──
+    { id:'wild-game-hero', category:'wild-game', categoryLabel:'Wild Game',
+      type:'hero', typeLabel:'Hero Food Shot', model:'flux-pro-1.1', ratio:'1:1',
+      base:'Bright editorial food photography, roasted venison with forest mushrooms on rustic ceramic, natural candlelight and window light, shallow depth of field f/1.8, slightly overhead, autumn herb garnish, rustic autumn-toned wooden table backdrop, hyperrealistic, travel magazine quality, warm tones, no text, no people',
+      neg:'blurry, low quality, oversaturated, purple cast, plastic, artificial light, dark or moody',
+      note:'Hero asset for Instagram grid and Pinterest' },
+    { id:'wild-game-lifestyle', category:'wild-game', categoryLabel:'Wild Game',
+      type:'lifestyle', typeLabel:'Lifestyle', model:'flux-pro-1.1', ratio:'4:5',
+      base:'Young couple, candlelight and warm autumn tones, rustic wild game restaurant with forest textures, laughing, venison arriving at table, no phones visible, candid travel magazine aesthetic, warm saturated tones, shallow depth of field, hyperrealistic',
+      neg:'phones visible, review screens, dark mood, blurry faces, posed, stock photo, purple tones',
+      note:'Lifestyle hero for Instagram and Facebook' },
+    { id:'wild-game-app-demo', category:'wild-game', categoryLabel:'Wild Game',
+      type:'app-demo', typeLabel:'App Demo', model:'flux-dev', ratio:'4:5',
+      base:'Clean smartphone mockup on warm marble, Pace & Platters app showing Wild Game selected in crimson, bright airy daylight, one hand holding phone naturally, lifestyle product photography',
+      neg:'dark background, floating UI, cluttered, artificial hands',
+      note:'App awareness content for all platforms' },
+    { id:'wild-game-text-overlay', category:'wild-game', categoryLabel:'Wild Game',
+      type:'text-overlay', typeLabel:'Text Overlay', model:'ideogram', ratio:'9:16',
+      base:"Travel poster, bold condensed type 'Don't Waste Time.', near-black background, crimson accent, cream type, venison and forest silhouette integrated, strong typographic hierarchy",
+      neg:'illegible text, distorted letters, multiple fonts, cluttered',
+      note:'Route through Ideogram API. Use for Reels/Shorts/TikTok' }
+  ];
+
+  (function() {
+    var LS_BASE   = 'pp_pl_base_';
+    var LS_NEG    = 'pp_pl_neg_';
+    var LS_CUSTOM = 'pp_pl_custom';
+
+    function loadCustom() {
+      try { return JSON.parse(localStorage.getItem(LS_CUSTOM) || '[]'); }
+      catch(e) { return []; }
+    }
+    function saveCustom(arr) { localStorage.setItem(LS_CUSTOM, JSON.stringify(arr)); }
+    function lsGet(prefix, id, fallback) { return localStorage.getItem(prefix + id) || fallback; }
+
+    var filterCat = '', filterType = '', filterModel = '';
+
+    var grid      = document.getElementById('pl-grid');
+    var countEl   = document.getElementById('pl-count');
+    var noResults = document.getElementById('pl-no-results');
+    var saveForm  = document.getElementById('pl-save-form');
+
+    document.getElementById('pl-filter-cat').addEventListener('change', function() { filterCat = this.value; render(); });
+    document.getElementById('pl-filter-type').addEventListener('change', function() { filterType = this.value; render(); });
+    document.getElementById('pl-filter-model').addEventListener('change', function() { filterModel = this.value; render(); });
+
+    // Save form toggle
+    document.getElementById('pl-save-btn').addEventListener('click', function() {
+      saveForm.classList.toggle('open');
+    });
+    document.getElementById('pl-save-cancel').addEventListener('click', function() {
+      saveForm.classList.remove('open');
+    });
+    document.getElementById('pl-save-confirm').addEventListener('click', function() {
+      var title = document.getElementById('pl-save-title').value.trim();
+      var base  = document.getElementById('pl-save-base').value.trim();
+      if (!title || !base) { alert('Title and Base Prompt are required.'); return; }
+      var entry = {
+        id:    'custom-' + Date.now(),
+        custom: true,
+        title:  title,
+        category:      document.getElementById('pl-save-cat').value,
+        categoryLabel: document.getElementById('pl-save-cat').value,
+        type:      'custom',
+        typeLabel: 'Custom',
+        model: document.getElementById('pl-save-model').value,
+        ratio: document.getElementById('pl-save-ratio').value,
+        base:  base,
+        neg:   document.getElementById('pl-save-neg').value.trim(),
+        note:  ''
+      };
+      var customs = loadCustom();
+      customs.push(entry);
+      saveCustom(customs);
+      document.getElementById('pl-save-title').value = '';
+      document.getElementById('pl-save-base').value  = '';
+      document.getElementById('pl-save-neg').value   = '';
+      saveForm.classList.remove('open');
+      render();
+    });
+
+    function sendToIG(entry, baseText) {
+      var igPrompt = document.getElementById('ig-prompt');
+      var igCat    = document.getElementById('ig-category');
+      if (igPrompt) igPrompt.value = baseText;
+      if (igCat && entry.category) igCat.value = entry.category;
+      // Model button (skip ideogram — no button in IG)
+      if (entry.model !== 'ideogram') {
+        var mb = document.querySelector('.ig-model-opt[data-model="' + entry.model + '"]');
+        if (mb) mb.click();
+      }
+      // Ratio button
+      var rb = document.querySelector('.ig-ratio-opt[data-ratio="' + entry.ratio + '"]');
+      if (rb) rb.click();
+      // Switch tab
+      var tab = document.querySelector('[data-tab="image"]');
+      if (tab) tab.click();
+    }
+
+    function makeCard(entry) {
+      var base = lsGet(LS_BASE, entry.id, entry.base);
+      var neg  = lsGet(LS_NEG,  entry.id, entry.neg || '');
+
+      var card = document.createElement('div');
+      card.className = 'pl-card' + (entry.custom ? ' pl-custom' : '');
+
+      // Title
+      var titleEl = document.createElement('div');
+      titleEl.className = 'pl-card-title';
+      titleEl.textContent = entry.custom
+        ? entry.title
+        : (entry.categoryLabel + ' \u2014 ' + entry.typeLabel);
+      card.appendChild(titleEl);
+
+      // Base prompt
+      var bg = document.createElement('div');
+      var bl = document.createElement('div');
+      bl.className = 'pl-field-label';
+      bl.textContent = 'Base Prompt';
+      var bta = document.createElement('textarea');
+      bta.className = 'pl-base-ta';
+      bta.value = base;
+      bta.spellcheck = false;
+      bta.addEventListener('blur', function() { localStorage.setItem(LS_BASE + entry.id, bta.value); });
+      bg.appendChild(bl);
+      bg.appendChild(bta);
+      card.appendChild(bg);
+
+      // Negative prompt (collapsible)
+      var ns = document.createElement('div');
+      ns.className = 'pl-neg-section';
+      var nt = document.createElement('button');
+      nt.className = 'pl-neg-toggle';
+      nt.innerHTML = '<span class="pl-neg-arrow">&#x25BC;</span>&nbsp;Negative Prompt';
+      var nta = document.createElement('textarea');
+      nta.className = 'pl-neg-ta';
+      nta.value = neg;
+      nta.spellcheck = false;
+      nta.addEventListener('blur', function() { localStorage.setItem(LS_NEG + entry.id, nta.value); });
+      nt.addEventListener('click', function() {
+        nt.classList.toggle('open');
+        nta.classList.toggle('open');
+      });
+      ns.appendChild(nt);
+      ns.appendChild(nta);
+      card.appendChild(ns);
+
+      // Badges
+      var badges = document.createElement('div');
+      badges.className = 'pl-badges';
+      var mb = document.createElement('span');
+      mb.className = 'pl-badge pl-badge-model' + (entry.model === 'ideogram' ? ' pl-badge-ideogram' : '');
+      mb.textContent = entry.model;
+      var rb = document.createElement('span');
+      rb.className = 'pl-badge pl-badge-ratio';
+      rb.textContent = entry.ratio;
+      badges.appendChild(mb);
+      badges.appendChild(rb);
+      card.appendChild(badges);
+
+      // Note (built-in entries only)
+      if (entry.note && !entry.custom) {
+        var note = document.createElement('div');
+        note.className = 'pl-note';
+        note.textContent = entry.note;
+        card.appendChild(note);
+      }
+
+      // Footer
+      var footer = document.createElement('div');
+      footer.className = 'pl-card-footer';
+      var useBtn = document.createElement('button');
+      useBtn.className = 'pl-use-btn';
+      useBtn.textContent = 'Use in Image Generator';
+      useBtn.addEventListener('click', function() { sendToIG(entry, bta.value); });
+      footer.appendChild(useBtn);
+      if (entry.custom) {
+        var delBtn = document.createElement('button');
+        delBtn.className = 'pl-del-btn';
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', function() {
+          if (!confirm('Delete "' + (entry.title || entry.id) + '"?')) return;
+          saveCustom(loadCustom().filter(function(e) { return e.id !== entry.id; }));
+          render();
+        });
+        footer.appendChild(delBtn);
+      }
+      card.appendChild(footer);
+      return card;
+    }
+
+    function render() {
+      var all = PL_ENTRIES.concat(loadCustom());
+      var filtered = all.filter(function(e) {
+        if (filterCat   && e.category !== filterCat)  return false;
+        if (filterType  && e.type     !== filterType)  return false;
+        if (filterModel && e.model    !== filterModel) return false;
+        return true;
+      });
+      grid.innerHTML = '';
+      countEl.textContent = filtered.length + ' prompt' + (filtered.length !== 1 ? 's' : '');
+      noResults.style.display = filtered.length === 0 ? 'block' : 'none';
+      filtered.forEach(function(e) { grid.appendChild(makeCard(e)); });
+    }
+
+    render();
   })();
 </script>
 
