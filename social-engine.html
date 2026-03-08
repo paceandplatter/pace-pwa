@@ -1127,6 +1127,479 @@
   color: var(--iron-light); text-align: center;
   padding: 60px 20px; letter-spacing: 0.08em;
 }
+/* ================================================================
+   CAMPAIGN PLANNER PANEL
+   ================================================================ */
+
+#cp-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+#cp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 24px;
+  background: var(--gunmetal);
+  border-bottom: 1px solid var(--steel);
+  flex-shrink: 0;
+}
+
+.cp-week-btn {
+  font-family: var(--font-ui); font-size: 16px; font-weight: 700;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); width: 30px; height: 30px;
+  border-radius: 3px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-raised); transition: all 0.15s;
+}
+.cp-week-btn:hover { background: var(--steel); color: var(--off-white); }
+
+#cp-week-label {
+  font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--off-white);
+  min-width: 150px; text-align: center;
+}
+
+#cp-toolbar-spacer { flex: 1; }
+
+.cp-export-btn {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-bright); padding: 8px 16px; border-radius: 3px;
+  cursor: pointer; box-shadow: var(--shadow-raised); transition: all 0.15s;
+  white-space: nowrap;
+}
+.cp-export-btn:hover { background: var(--steel); color: var(--off-white); }
+.cp-export-btn.cp-primary {
+  background: var(--crimson); border-color: var(--crimson-mid); color: #fff;
+}
+.cp-export-btn.cp-primary:hover { background: var(--crimson-mid); }
+
+/* ── Scroll area ── */
+#cp-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 24px 32px;
+}
+
+/* ── Table ── */
+#cp-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+.cp-day-th {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--silver-muted);
+  padding: 0 0 10px 8px;
+  text-align: center;
+  min-width: 152px;
+}
+.cp-corner-th {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--iron-light);
+  padding: 0 0 10px 0;
+  width: 86px;
+  text-align: left;
+}
+
+/* ── Platform label cell ── */
+.cp-platform-td {
+  vertical-align: top;
+  padding: 0 10px 10px 0;
+  width: 86px;
+}
+.cp-platform-label {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding-top: 10px;
+}
+.cp-platform-emoji { font-size: 18px; line-height: 1; }
+.cp-platform-name {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--silver-muted); line-height: 1.3;
+}
+
+/* ── Slot cell ── */
+.cp-slot-td {
+  vertical-align: top;
+  padding: 0 8px 10px 0;
+}
+.cp-slot-td:last-child { padding-right: 0; }
+
+.cp-slot {
+  width: 152px;
+  background: var(--steel-dark);
+  border: 1px solid var(--steel-light);
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  overflow: hidden; position: relative;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s;
+}
+.cp-slot:hover { border-color: var(--iron); }
+.cp-slot.drag-over {
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 1px var(--crimson), var(--shadow-card);
+}
+
+/* ── Thumb zone ── */
+.cp-thumb-zone {
+  position: relative;
+  width: 100%;
+  height: 100px;
+  background: var(--gunmetal);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cp-thumb-zone::after {
+  content: 'Drop or click';
+  font-family: var(--font-ui); font-size: 8px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--iron);
+  pointer-events: none;
+}
+.cp-thumb-zone.has-image::after { display: none; }
+.cp-thumb-zone.has-image { cursor: default; }
+
+.cp-thumb {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  display: none; opacity: 0; transition: opacity 0.3s;
+}
+.cp-thumb.visible { display: block; opacity: 1; }
+
+.cp-slot-clear {
+  position: absolute; top: 4px; right: 4px;
+  width: 18px; height: 18px;
+  background: rgba(0,0,0,0.72); border: 1px solid var(--steel-light);
+  border-radius: 2px; color: var(--silver-muted);
+  font-size: 10px; line-height: 1; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  z-index: 2; transition: color 0.15s;
+}
+.cp-slot-clear:hover { color: var(--off-white); }
+.cp-slot-clear.visible { display: flex; }
+
+/* ── Caption ── */
+.cp-caption-ta {
+  font-family: var(--font-ui); font-size: 11px;
+  line-height: 1.5; color: var(--silver-bright);
+  background: transparent; border: none;
+  border-top: 1px solid var(--steel);
+  padding: 7px 8px;
+  resize: none; width: 100%; min-height: 54px;
+  outline: none;
+}
+.cp-caption-ta::placeholder { color: var(--iron); }
+.cp-caption-ta:focus { background: rgba(0,0,0,0.15); }
+
+/* ── Footer: ratio badge + hashtags ── */
+.cp-slot-footer {
+  padding: 5px 8px 7px;
+  border-top: 1px solid var(--steel);
+  display: flex; flex-direction: column; gap: 4px;
+  flex-shrink: 0;
+}
+.cp-ratio-badge {
+  display: inline-block;
+  font-family: var(--font-ui); font-size: 8px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); padding: 2px 5px; border-radius: 2px;
+  align-self: flex-start;
+}
+.cp-hashtags {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--iron-light); line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ================================================================
+   PROMPT FORGE PANEL
+   ================================================================ */
+
+#pf-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Two-column grid ── */
+#pf-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 390px 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+@media (max-width: 820px) {
+  #pf-grid { grid-template-columns: 1fr; overflow-y: auto; }
+}
+
+/* ── Left column ── */
+#pf-controls {
+  border-right: 1px solid var(--steel);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+#pf-header { padding-bottom: 16px; border-bottom: 1px solid var(--steel); }
+#pf-title {
+  font-family: var(--font-ui); font-size: 12px; font-weight: 800;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--crimson);
+}
+.pf-title-sub {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--iron-light); margin-top: 3px;
+}
+
+/* ── Brief textarea ── */
+#pf-brief {
+  flex: 1; min-height: 200px; width: 100%;
+  font-family: var(--font-ui); font-size: 14px; font-weight: 400;
+  line-height: 1.65;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--off-white); padding: 14px 16px; border-radius: 4px;
+  box-shadow: var(--shadow-inset); resize: vertical;
+  transition: border-color 0.15s;
+}
+#pf-brief:focus { border-color: var(--crimson-mid); outline: none; }
+#pf-brief::placeholder { color: var(--iron-light); font-style: italic; }
+
+/* ── Model toggle ── */
+.pf-model-toggle {
+  display: flex; border: 1px solid var(--steel-light);
+  border-radius: 3px; overflow: hidden;
+}
+.pf-model-opt {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  padding: 10px 6px;
+  background: var(--steel-dark); border: none; cursor: pointer;
+  border-right: 1px solid var(--steel-light); transition: background 0.15s;
+}
+.pf-model-opt:last-child { border-right: none; }
+.pf-model-name {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--silver-muted); transition: color 0.15s;
+}
+.pf-model-tag {
+  font-family: var(--font-ui); font-size: 9px;
+  letter-spacing: 0.06em; color: var(--iron-light); transition: color 0.15s;
+}
+.pf-model-opt.active { background: var(--steel-light); }
+.pf-model-opt.active .pf-model-name { color: var(--off-white); }
+.pf-model-opt.active .pf-model-tag { color: var(--silver-muted); }
+
+/* ── Generate button ── */
+#pf-generate {
+  width: 100%; padding: 15px;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 800;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  background: var(--crimson); color: #fff; border: none;
+  border-radius: 3px; cursor: pointer;
+  box-shadow: 0 2px 16px var(--crimson-glow-soft);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+#pf-generate:hover { background: var(--crimson-mid); box-shadow: 0 2px 24px var(--crimson-glow); }
+#pf-generate:active { transform: scale(0.98); }
+#pf-generate:disabled {
+  background: var(--steel); color: var(--silver-dim);
+  box-shadow: none; cursor: not-allowed;
+}
+
+/* ── Right column ── */
+#pf-output {
+  overflow-y: auto;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 0;
+}
+
+/* Empty state */
+#pf-empty {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 60px 20px;
+}
+#pf-empty-icon { font-size: 40px; opacity: 0.15; line-height: 1; }
+#pf-empty-text {
+  font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--iron-light); text-align: center; line-height: 1.8;
+}
+
+/* Loading */
+#pf-loading {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 60px 20px; flex: 1;
+}
+#pf-loading.visible { display: flex; }
+#pf-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--steel-light); border-top-color: var(--crimson);
+  border-radius: 50%;
+  animation: ig-spin 0.8s linear infinite;
+}
+#pf-loading-text {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--silver-muted);
+}
+
+/* Result container */
+#pf-result {
+  display: none; flex-direction: column; gap: 14px;
+}
+#pf-result.visible { display: flex; }
+
+/* Prompt blocks */
+.pf-block {
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  border-radius: 4px; overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.pf-block-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--gunmetal); border-bottom: 1px solid var(--steel);
+}
+.pf-block-label {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 800;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver-muted);
+}
+.pf-copy-btn {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-muted); padding: 3px 10px; border-radius: 2px;
+  cursor: pointer; transition: all 0.15s;
+}
+.pf-copy-btn:hover { background: var(--steel-light); color: var(--off-white); }
+.pf-block-body {
+  font-family: var(--font-mono); font-size: 12px;
+  line-height: 1.6; color: var(--silver-bright);
+  padding: 12px 14px;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* Badge row */
+.pf-badge-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.pf-badge {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 2px;
+  background: var(--steel); border: 1px solid var(--steel-light);
+  color: var(--silver-muted);
+}
+.pf-badge-model { background: var(--gunmetal); border-color: var(--iron); color: var(--silver-bright); }
+.pf-badge-ratio { color: var(--silver-bright); }
+.pf-badge-platform { background: var(--steel-dark); border-color: var(--iron-light); color: var(--silver); }
+.pf-badge-category { background: var(--crimson-deep); border-color: var(--crimson-mid); color: var(--off-white); }
+
+/* Usage note */
+.pf-usage-note {
+  font-family: var(--font-ui); font-size: 12px; font-style: italic;
+  color: var(--silver-dim); line-height: 1.5; padding: 4px 0;
+}
+
+/* Action buttons */
+#pf-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.pf-action-btn {
+  flex: 1; min-width: 120px;
+  padding: 11px 10px;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--silver-bright); border-radius: 3px; cursor: pointer;
+  box-shadow: var(--shadow-raised); transition: all 0.15s;
+  white-space: nowrap;
+}
+.pf-action-btn:hover { background: var(--steel); color: var(--off-white); }
+.pf-action-btn.pf-action-primary {
+  background: var(--crimson); border-color: var(--crimson-mid); color: #fff;
+}
+.pf-action-btn.pf-action-primary:hover { background: var(--crimson-mid); }
+
+/* Error */
+#pf-error {
+  font-family: var(--font-ui); font-size: 12px;
+  color: var(--crimson); padding: 14px 16px;
+  background: var(--steel-dark); border: 1px solid var(--crimson-deep);
+  border-radius: 4px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word;
+  display: none;
+}
+
+/* ── Save to Library modal ── */
+#pf-save-modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.72);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+#pf-save-modal.open { display: flex; }
+#pf-save-box {
+  background: var(--gunmetal); border: 1px solid var(--steel-light);
+  border-radius: 6px; padding: 28px;
+  width: 100%; max-width: 480px;
+  box-shadow: var(--shadow-card);
+  display: flex; flex-direction: column; gap: 16px;
+}
+#pf-save-box-title {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 800;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver-bright);
+}
+#pf-save-name {
+  width: 100%;
+  font-family: var(--font-ui); font-size: 14px;
+  background: var(--steel-dark); border: 1px solid var(--steel-light);
+  color: var(--off-white); padding: 11px 14px; border-radius: 3px;
+  box-shadow: var(--shadow-inset);
+}
+#pf-save-name:focus { border-color: var(--crimson-mid); outline: none; }
+#pf-save-name::placeholder { color: var(--iron-light); }
+.pf-save-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+#pf-save-confirm-modal {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  background: var(--crimson); border: none;
+  color: #fff; padding: 10px 22px; border-radius: 3px; cursor: pointer;
+  box-shadow: var(--shadow-raised); transition: background 0.15s;
+}
+#pf-save-confirm-modal:hover { background: var(--crimson-mid); }
+#pf-save-cancel-modal {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  background: transparent; border: 1px solid var(--steel-light);
+  color: var(--silver-muted); padding: 10px 18px; border-radius: 3px; cursor: pointer;
+  transition: all 0.15s;
+}
+#pf-save-cancel-modal:hover { color: var(--off-white); border-color: var(--iron); }
   </style>
 </head>
 <body>
@@ -1588,8 +2061,136 @@
 
   </div>
 </div>
-    <div class="tab-panel"        id="panel-campaign" role="tabpanel" aria-labelledby="tab-campaign"></div>
-    <div class="tab-panel"        id="panel-forge"    role="tabpanel" aria-labelledby="tab-forge"></div>
+    <div class="tab-panel" id="panel-campaign" role="tabpanel" aria-labelledby="tab-campaign">
+  <div id="cp-wrap">
+    <div id="cp-toolbar">
+      <button class="cp-week-btn" id="cp-prev-week">&#x2039;</button>
+      <div id="cp-week-label">Loading&hellip;</div>
+      <button class="cp-week-btn" id="cp-next-week">&#x203A;</button>
+      <div id="cp-toolbar-spacer"></div>
+      <button class="cp-export-btn" id="cp-export-json">Export JSON</button>
+      <button class="cp-export-btn cp-primary" id="cp-copy-text">Copy to Clipboard</button>
+    </div>
+    <div id="cp-scroll">
+      <table id="cp-table" aria-label="Weekly content calendar"></table>
+    </div>
+  </div>
+</div>
+    <div class="tab-panel" id="panel-forge" role="tabpanel" aria-labelledby="tab-forge">
+  <div id="pf-wrap">
+    <div id="pf-grid">
+
+      <!-- LEFT: Controls -->
+      <div id="pf-controls">
+        <div id="pf-header">
+          <div id="pf-title">Prompt Forge</div>
+          <div class="pf-title-sub">Intelligence Layer &mdash; Stage 1</div>
+        </div>
+
+        <!-- Brief textarea -->
+        <div class="ig-section ig-section-grow">
+          <div class="ig-label">Plain-English Brief</div>
+          <textarea id="pf-brief" placeholder="Outdoor patio, summer lunch, four friends, Instagram grid, warm and editorial"></textarea>
+        </div>
+
+        <!-- Model toggle -->
+        <div class="ig-section">
+          <div class="ig-label">Forge Model</div>
+          <div class="pf-model-toggle">
+            <button class="pf-model-opt active" data-pf-model="deepseek">
+              <span class="pf-model-name">DeepSeek V3</span>
+              <span class="pf-model-tag">Fast &middot; Near-zero cost</span>
+            </button>
+            <button class="pf-model-opt" data-pf-model="haiku">
+              <span class="pf-model-name">Haiku</span>
+              <span class="pf-model-tag">Fallback &middot; Anthropic</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Generate -->
+        <button id="pf-generate">FORGE PROMPT</button>
+      </div>
+
+      <!-- RIGHT: Output -->
+      <div id="pf-output">
+
+        <!-- Empty state -->
+        <div id="pf-empty">
+          <div id="pf-empty-icon">&#x2726;</div>
+          <div id="pf-empty-text">Describe your shot in plain English.<br>The Forge writes the technical prompt.</div>
+        </div>
+
+        <!-- Loading -->
+        <div id="pf-loading">
+          <div id="pf-spinner"></div>
+          <div id="pf-loading-text">Forging prompt&hellip;</div>
+        </div>
+
+        <!-- Error -->
+        <div id="pf-error"></div>
+
+        <!-- Result -->
+        <div id="pf-result">
+
+          <!-- IMAGE PROMPT -->
+          <div class="pf-block">
+            <div class="pf-block-header">
+              <span class="pf-block-label">Image Prompt</span>
+              <button class="pf-copy-btn" data-target="pf-image-prompt-text">Copy</button>
+            </div>
+            <div class="pf-block-body" id="pf-image-prompt-text"></div>
+          </div>
+
+          <!-- NEGATIVE PROMPT -->
+          <div class="pf-block">
+            <div class="pf-block-header">
+              <span class="pf-block-label">Negative Prompt</span>
+              <button class="pf-copy-btn" data-target="pf-negative-prompt-text">Copy</button>
+            </div>
+            <div class="pf-block-body" id="pf-negative-prompt-text"></div>
+          </div>
+
+          <!-- MOTION PROMPT -->
+          <div class="pf-block">
+            <div class="pf-block-header">
+              <span class="pf-block-label">Motion Prompt</span>
+              <button class="pf-copy-btn" data-target="pf-motion-prompt-text">Copy</button>
+            </div>
+            <div class="pf-block-body" id="pf-motion-prompt-text"></div>
+          </div>
+
+          <!-- Badge row -->
+          <div class="pf-badge-row" id="pf-badge-row"></div>
+
+          <!-- Usage note -->
+          <div class="pf-usage-note" id="pf-usage-note"></div>
+
+          <!-- Action buttons -->
+          <div id="pf-actions">
+            <button class="pf-action-btn" id="pf-send-image">&#x2192; Image Generator</button>
+            <button class="pf-action-btn" id="pf-send-video">&#x2192; Video Generator</button>
+            <button class="pf-action-btn pf-action-primary" id="pf-save-lib">Save to Library</button>
+          </div>
+
+        </div><!-- /pf-result -->
+      </div><!-- /pf-output -->
+    </div><!-- /pf-grid -->
+  </div><!-- /pf-wrap -->
+
+  <!-- Save to Library modal -->
+  <div id="pf-save-modal">
+    <div id="pf-save-box">
+      <div id="pf-save-box-title">Save Prompt to Library</div>
+      <input type="text" id="pf-save-name" placeholder="e.g. Polish Underground &mdash; Candlelit Hero">
+      <div class="pf-save-modal-actions">
+        <button id="pf-save-cancel-modal">Cancel</button>
+        <button id="pf-save-confirm-modal">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+</div>
   </main>
 
   <!-- Settings overlay (backdrop) -->
@@ -2876,6 +3477,698 @@
 
     render();
   })();
+
+// ── Prompt Forge ─────────────────────────────────────────────────────────
+var PF_SYSTEM_PROMPT = [
+  'You are an expert AI prompt engineer for the Pace & Platters social media content engine.',
+  'You write technically precise, platform-aware prompts for Flux 2 image generation and Kling/Runway video generation.',
+  '',
+  'You have deep expertise in:',
+  '- Flux 2 prompt syntax: positive descriptors, lighting language (golden hour, Rembrandt, practical light,',
+  '  overcast diffuse), camera specs (85mm f/1.4, slightly overhead, eye level, wide establishing), style',
+  '  modifiers (hyperrealistic, editorial, travel magazine, cinematic, flat lay), negative prompt construction',
+  '- Kling and Runway motion prompt language: camera moves (slow dolly push, aerial pull back, handheld follow,',
+  '  rack focus foreground to background), pace descriptors (languid, kinetic, contemplative), physics (steam',
+  '  rising, liquid pour, fabric movement, candle flicker)',
+  '- Pace & Platters brand rules: advertising creative must always be bright, sun-drenched, high-energy — the',
+  '  inverse of the dark logo. No phones visible in lifestyle shots. No review screens. The feeling is liberation',
+  '  from decision fatigue. Crimson #C0392B is the brand sole electric accent color.',
+  '- The 9 P&P categories and their visual signatures: Polish Underground (vaulted stone, candlelight, deep shadows',
+  '  with warm pools of light), Polish Outdoor Patios (golden hour, cobblestone, linen, dappled shade), Polish',
+  '  Traditional (rustic wood, ceramic, hearth light), Polish Modern (clean lines, architectural plating, gallery',
+  '  lighting), Italian (marble, fresh pasta, sun through shutters), Tapas & Tacos (vibrant color, ceramic tile,',
+  '  afternoon light, abundant spread), Asian (lacquer, steam, neon-adjacent warmth, precision plating), Carnivore',
+  '  (char and flame, cast iron, dramatic side light), Wild Game (forest textures, autumn palette, rustic abundance)',
+  '- Platform requirements: 9:16 Shorts/Reels/TikTok hook-first, 1:1 or 4:5 Instagram warm tone, 2:3 Pinterest',
+  '  text overlay space, 16:9 YouTube/LinkedIn, 4:5 Facebook',
+  '- Model routing: flux-schnell for drafts/concepts/quick/test/rough; flux-pro-1.1 for final/hero/campaign/',
+  '  launch/client; flux-dev for ambiguous mid-stage work. Never default to the most expensive model.',
+  '',
+  'Return valid JSON only. No preamble. No markdown fences. Raw JSON object only:',
+  '{',
+  '  "image_prompt": "string",',
+  '  "negative_prompt": "string",',
+  '  "motion_prompt": "string",',
+  '  "recommended_model": "flux-pro-1.1 | flux-dev | flux-schnell",',
+  '  "aspect_ratio": "9:16 | 1:1 | 4:5 | 16:9 | 2:3",',
+  '  "platform": "string",',
+  '  "category": "string",',
+  '  "usage_note": "string"',
+  '}'
+].join('\n');
+
+(function() {
+  var pfState = {
+    model:      localStorage.getItem('pp_forge_model') || 'deepseek',
+    result:     null,
+    generating: false
+  };
+
+  // DOM refs
+  var briefTA     = document.getElementById('pf-brief');
+  var generateBtn = document.getElementById('pf-generate');
+  var emptyEl     = document.getElementById('pf-empty');
+  var loadingEl   = document.getElementById('pf-loading');
+  var resultEl    = document.getElementById('pf-result');
+  var errorEl     = document.getElementById('pf-error');
+  var imgPromptEl = document.getElementById('pf-image-prompt-text');
+  var negPromptEl = document.getElementById('pf-negative-prompt-text');
+  var motPromptEl = document.getElementById('pf-motion-prompt-text');
+  var badgeRowEl  = document.getElementById('pf-badge-row');
+  var usageNoteEl = document.getElementById('pf-usage-note');
+  var saveModal   = document.getElementById('pf-save-modal');
+  var saveNameEl  = document.getElementById('pf-save-name');
+
+  // ── Model toggle — sync with stored preference ────────────────────────
+  function syncModelButtons(model) {
+    document.querySelectorAll('.pf-model-opt').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.pfModel === model);
+    });
+  }
+  syncModelButtons(pfState.model);
+
+  document.querySelectorAll('.pf-model-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      pfState.model = btn.dataset.pfModel;
+      syncModelButtons(pfState.model);
+      localStorage.setItem('pp_forge_model', pfState.model);
+      // Keep settings drawer toggle in sync
+      document.querySelectorAll('.toggle-opt[data-model]').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.model === pfState.model);
+      });
+    });
+  });
+
+  // When settings drawer saves, re-sync forge model buttons
+  var settingsSaveBtn = document.getElementById('settings-save');
+  if (settingsSaveBtn) {
+    settingsSaveBtn.addEventListener('click', function() {
+      setTimeout(function() {
+        var m = localStorage.getItem('pp_forge_model') || 'deepseek';
+        pfState.model = m;
+        syncModelButtons(m);
+      }, 50);
+    });
+  }
+
+  // ── Copy buttons ──────────────────────────────────────────────────────
+  document.querySelectorAll('.pf-copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      var orig = btn.textContent;
+      navigator.clipboard.writeText(target.textContent).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      });
+    });
+  });
+
+  // ── Generate ──────────────────────────────────────────────────────────
+  generateBtn.addEventListener('click', function() {
+    var brief = briefTA.value.trim();
+    if (!brief) { briefTA.focus(); return; }
+    if (pfState.generating) return;
+
+    var orKey   = PP.getKey('openrouter');
+    var anthKey = PP.getKey('anthropic');
+
+    if (!orKey && !anthKey) {
+      showError('No API key found. Open \u2699 Settings and add an OpenRouter or Anthropic key.');
+      return;
+    }
+
+    startGenerating();
+
+    if (pfState.model === 'deepseek' && orKey) {
+      callOpenRouter(brief, orKey, anthKey);
+    } else {
+      if (!anthKey) {
+        stopGenerating();
+        showError('Haiku requires an Anthropic API key. Open \u2699 Settings to add one.');
+        return;
+      }
+      callHaiku(brief, anthKey);
+    }
+  });
+
+  function callOpenRouter(brief, orKey, anthFallbackKey) {
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + orKey,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Pace & Platters Social Engine'
+      },
+      body: JSON.stringify({
+        model: 'deepseek/deepseek-chat-v3-0324',
+        messages: [
+          { role: 'system', content: PF_SYSTEM_PROMPT },
+          { role: 'user',   content: brief }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.choices || !data.choices[0]) {
+        throw new Error((data.error && data.error.message) || 'No response from OpenRouter');
+      }
+      parseAndShow(data.choices[0].message.content, 'DeepSeek V3');
+    })
+    .catch(function(err) {
+      if (anthFallbackKey) {
+        callHaiku(briefTA.value.trim(), anthFallbackKey);
+      } else {
+        stopGenerating();
+        showError('OpenRouter error: ' + err.message);
+      }
+    });
+  }
+
+  function callHaiku(brief, key) {
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: PF_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: brief }]
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.content || !data.content[0]) {
+        throw new Error((data.error && data.error.message) || 'No response from Anthropic');
+      }
+      parseAndShow(data.content[0].text, 'Haiku');
+    })
+    .catch(function(err) {
+      stopGenerating();
+      showError('Haiku error: ' + err.message);
+    });
+  }
+
+  function parseAndShow(raw, modelLabel) {
+    stopGenerating();
+    var json;
+    try {
+      // Strip accidental markdown fences
+      var clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+      json = JSON.parse(clean);
+    } catch(e) {
+      showError('Could not parse response as JSON.\n\nRaw output:\n' + raw);
+      return;
+    }
+    pfState.result = json;
+    pfState.result._modelLabel = modelLabel;
+    renderResult(json, modelLabel);
+  }
+
+  function renderResult(data, modelLabel) {
+    errorEl.style.display  = 'none';
+    emptyEl.style.display  = 'none';
+    loadingEl.classList.remove('visible');
+
+    imgPromptEl.textContent = data.image_prompt    || '';
+    negPromptEl.textContent = data.negative_prompt || '';
+    motPromptEl.textContent = data.motion_prompt   || '';
+    usageNoteEl.textContent = data.usage_note      || '';
+
+    // Build badge row
+    badgeRowEl.innerHTML = '';
+    function badge(text, cls) {
+      var b = document.createElement('span');
+      b.className = 'pf-badge ' + (cls || '');
+      b.textContent = text;
+      return b;
+    }
+    if (modelLabel)              badgeRowEl.appendChild(badge(modelLabel,              'pf-badge-model'));
+    if (data.recommended_model)  badgeRowEl.appendChild(badge(data.recommended_model,  ''));
+    if (data.aspect_ratio)       badgeRowEl.appendChild(badge(data.aspect_ratio,       'pf-badge-ratio'));
+    if (data.platform)           badgeRowEl.appendChild(badge(data.platform,           'pf-badge-platform'));
+    if (data.category)           badgeRowEl.appendChild(badge(data.category,           'pf-badge-category'));
+
+    resultEl.classList.add('visible');
+  }
+
+  // ── Send to Image Generator ───────────────────────────────────────────
+  document.getElementById('pf-send-image').addEventListener('click', function() {
+    if (!pfState.result) return;
+    var r = pfState.result;
+
+    var igPromptEl = document.getElementById('ig-prompt');
+    if (igPromptEl) igPromptEl.value = r.image_prompt || '';
+
+    // Model — map recommended to IG model buttons
+    var validModels = { 'flux-pro-1.1': 1, 'flux-dev': 1, 'flux-schnell': 1 };
+    if (r.recommended_model && validModels[r.recommended_model]) {
+      var mb = document.querySelector('.ig-model-opt[data-model="' + r.recommended_model + '"]');
+      if (mb) mb.click();
+    }
+
+    // Aspect ratio
+    if (r.aspect_ratio) {
+      var rb = document.querySelector('.ig-ratio-opt[data-ratio="' + r.aspect_ratio + '"]');
+      if (rb) rb.click();
+    }
+
+    var tab = document.querySelector('[data-tab="image"]');
+    if (tab) tab.click();
+  });
+
+  // ── Send to Video Generator ───────────────────────────────────────────
+  document.getElementById('pf-send-video').addEventListener('click', function() {
+    if (!pfState.result) return;
+    var vgPromptEl = document.getElementById('vg-prompt');
+    if (vgPromptEl) vgPromptEl.value = pfState.result.motion_prompt || '';
+    var tab = document.querySelector('[data-tab="video"]');
+    if (tab) tab.click();
+  });
+
+  // ── Save to Library ───────────────────────────────────────────────────
+  document.getElementById('pf-save-lib').addEventListener('click', function() {
+    if (!pfState.result) return;
+    saveNameEl.value = '';
+    saveModal.classList.add('open');
+    setTimeout(function() { saveNameEl.focus(); }, 50);
+  });
+
+  document.getElementById('pf-save-cancel-modal').addEventListener('click', function() {
+    saveModal.classList.remove('open');
+  });
+
+  saveModal.addEventListener('click', function(e) {
+    if (e.target === saveModal) saveModal.classList.remove('open');
+  });
+
+  document.getElementById('pf-save-confirm-modal').addEventListener('click', function() {
+    var name = saveNameEl.value.trim();
+    if (!name) { saveNameEl.focus(); return; }
+
+    var r = pfState.result;
+    var entry = {
+      id:            'forge-' + Date.now(),
+      custom:        true,
+      title:         name,
+      category:      r.category || '',
+      categoryLabel: r.category || '',
+      type:          'custom',
+      typeLabel:     'Forge',
+      model:         r.recommended_model || 'flux-dev',
+      ratio:         r.aspect_ratio || '1:1',
+      base:          r.image_prompt || '',
+      neg:           r.negative_prompt || '',
+      note:          r.usage_note || ''
+    };
+
+    try {
+      var customs = JSON.parse(localStorage.getItem('pp_pl_custom') || '[]');
+      customs.push(entry);
+      localStorage.setItem('pp_pl_custom', JSON.stringify(customs));
+    } catch(e) {}
+
+    saveModal.classList.remove('open');
+
+    var saveBtn = document.getElementById('pf-save-lib');
+    saveBtn.textContent = 'Saved \u2714';
+    setTimeout(function() { saveBtn.textContent = 'Save to Library'; }, 2000);
+  });
+
+  // ── State helpers ─────────────────────────────────────────────────────
+  function startGenerating() {
+    pfState.generating = true;
+    generateBtn.disabled = true;
+    errorEl.style.display = 'none';
+    resultEl.classList.remove('visible');
+    emptyEl.style.display = 'none';
+    loadingEl.classList.add('visible');
+  }
+
+  function stopGenerating() {
+    pfState.generating = false;
+    generateBtn.disabled = false;
+    loadingEl.classList.remove('visible');
+  }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+    emptyEl.style.display = 'none';
+    resultEl.classList.remove('visible');
+  }
+
+})();
+
+// ── Campaign Planner ─────────────────────────────────────────────────────
+var CP_PLATFORMS = [
+  { id:'youtube-shorts', label:'YouTube Shorts', emoji:'\uD83C\uDFAC', ratio:'9:16',
+    hashtags:'#poland #krakow #foodtravel #traveltips #paceandplatters' },
+  { id:'instagram',      label:'Instagram',      emoji:'\uD83D\uDCF8', ratio:'1:1',
+    hashtags:'#krakowfood #polandtravel #foodie #travelgram #eatlocal' },
+  { id:'tiktok',         label:'TikTok',         emoji:'\uD83C\uDFB5', ratio:'9:16',
+    hashtags:'#traveltok #foodtok #krakow #polandfood #restauranttips' },
+  { id:'x',              label:'X',              emoji:'\u2716',        ratio:'16:9',
+    hashtags:'#travel #food #poland #krakow' },
+  { id:'pinterest',      label:'Pinterest',      emoji:'\uD83D\uDCCC', ratio:'2:3',
+    hashtags:'#polishfood #krakowrestaurants #travelpoland #foodphotography' },
+  { id:'threads',        label:'Threads',        emoji:'\uD83E\uDDF5', ratio:'1:1',
+    hashtags:'#travel #foodie #krakow #poland' },
+  { id:'lemon8',         label:'Lemon8',         emoji:'\uD83C\uDF4B', ratio:'4:5',
+    hashtags:'#fooddiary #travellife #krakowpoland #localfood' },
+  { id:'facebook',       label:'Facebook',       emoji:'\uD83D\uDC65', ratio:'16:9',
+    hashtags:'#krakowrestaurants #polandtravel #familytravel #foodlovers' },
+  { id:'linkedin',       label:'LinkedIn',       emoji:'\uD83D\uDCBC', ratio:'16:9',
+    hashtags:'#traveltech #startups #hospitalityinnovation #poland' }
+];
+
+var CP_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+(function() {
+  var LS_KEY = 'pp_cp_';
+  var weekOffset = 0;
+
+  // ── Week utilities ────────────────────────────────────────────────────
+  function getMondayOfWeek(offset) {
+    var now = new Date();
+    var day = now.getDay();
+    var diff = (day === 0 ? -6 : 1 - day);
+    var monday = new Date(now);
+    monday.setDate(now.getDate() + diff + (offset * 7));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+
+  function getWeekDates(offset) {
+    var mon = getMondayOfWeek(offset);
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function getWeekKey(offset) {
+    var mon = getMondayOfWeek(offset);
+    var jan4   = new Date(mon.getFullYear(), 0, 4);
+    var week   = Math.ceil((((mon - jan4) / 86400000) + jan4.getDay() + 1) / 7);
+    return mon.getFullYear() + '-W' + String(week).padStart(2, '00');
+  }
+
+  function formatDateRange(dates) {
+    var opts = { month: 'short', day: 'numeric' };
+    return dates[0].toLocaleDateString('en-US', opts)
+      + ' \u2013 '
+      + dates[6].toLocaleDateString('en-US', opts);
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────
+  function loadWeekData(key) {
+    try { return JSON.parse(localStorage.getItem(LS_KEY + key) || '{}'); }
+    catch(e) { return {}; }
+  }
+  function saveWeekData(key, data) {
+    localStorage.setItem(LS_KEY + key, JSON.stringify(data));
+  }
+  function cellKey(platformId, dayIdx) { return platformId + '_' + dayIdx; }
+
+  var weekKey  = '';
+  var weekData = {};
+
+  // ── DOM refs ──────────────────────────────────────────────────────────
+  var weekLabel = document.getElementById('cp-week-label');
+  var table     = document.getElementById('cp-table');
+
+  document.getElementById('cp-prev-week').addEventListener('click', function() {
+    weekOffset--; rebuild();
+  });
+  document.getElementById('cp-next-week').addEventListener('click', function() {
+    weekOffset++; rebuild();
+  });
+
+  // ── Drag source: #ig-image ─────────────────────────────────────────────
+  var igImg = document.getElementById('ig-image');
+  if (igImg) {
+    igImg.draggable = true;
+    igImg.style.cursor = 'grab';
+    igImg.addEventListener('dragstart', function(e) {
+      if (!this.src || this.src === window.location.href) { e.preventDefault(); return; }
+      e.dataTransfer.setData('text/uri-list', this.src);
+      e.dataTransfer.setData('text/plain', this.src);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+  }
+
+  // Drag-over Campaign tab → auto-switch tab
+  var campaignTab = document.querySelector('[data-tab="campaign"]');
+  if (campaignTab) {
+    var tabSwitchTimer = null;
+    campaignTab.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (!document.getElementById('panel-campaign').classList.contains('active')) {
+        if (!tabSwitchTimer) {
+          tabSwitchTimer = setTimeout(function() { campaignTab.click(); tabSwitchTimer = null; }, 400);
+        }
+      }
+    });
+    campaignTab.addEventListener('dragleave', function() {
+      clearTimeout(tabSwitchTimer); tabSwitchTimer = null;
+    });
+  }
+
+  // ── Build table ───────────────────────────────────────────────────────
+  function rebuild() {
+    var dates = getWeekDates(weekOffset);
+    weekKey   = getWeekKey(weekOffset);
+    weekData  = loadWeekData(weekKey);
+    weekLabel.textContent = formatDateRange(dates);
+
+    table.innerHTML = '';
+
+    // Header row
+    var thead    = document.createElement('thead');
+    var hrow     = document.createElement('tr');
+    var cornerTh = document.createElement('th');
+    cornerTh.className = 'cp-corner-th';
+    cornerTh.textContent = 'Platform';
+    hrow.appendChild(cornerTh);
+
+    CP_DAYS.forEach(function(dayName, i) {
+      var th = document.createElement('th');
+      th.className = 'cp-day-th';
+      var dateStr = dates[i].toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+      th.innerHTML = dayName
+        + '<br><span style="font-weight:400;opacity:0.55">'
+        + dateStr + '</span>';
+      hrow.appendChild(th);
+    });
+    thead.appendChild(hrow);
+    table.appendChild(thead);
+
+    // Platform rows
+    var tbody = document.createElement('tbody');
+    CP_PLATFORMS.forEach(function(platform) {
+      var tr = document.createElement('tr');
+
+      // Label cell
+      var labelTd = document.createElement('td');
+      labelTd.className = 'cp-platform-td';
+      labelTd.innerHTML =
+        '<div class="cp-platform-label">'
+        + '<span class="cp-platform-emoji">' + platform.emoji + '</span>'
+        + '<span class="cp-platform-name">' + platform.label + '</span>'
+        + '</div>';
+      tr.appendChild(labelTd);
+
+      // Slot cells
+      for (var d = 0; d < 7; d++) {
+        var td = document.createElement('td');
+        td.className = 'cp-slot-td';
+        td.appendChild(buildSlot(platform, d));
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+
+  function buildSlot(platform, dayIdx) {
+    var key   = cellKey(platform.id, dayIdx);
+    var saved = weekData[key] || {};
+
+    var slot = document.createElement('div');
+    slot.className = 'cp-slot';
+
+    // Thumb zone
+    var thumbZone = document.createElement('div');
+    thumbZone.className = 'cp-thumb-zone' + (saved.imageUrl ? ' has-image' : '');
+
+    var thumb = document.createElement('img');
+    thumb.className = 'cp-thumb';
+    thumb.alt = '';
+    if (saved.imageUrl) {
+      thumb.src = saved.imageUrl;
+      setTimeout(function() { thumb.classList.add('visible'); }, 20);
+    }
+    thumbZone.appendChild(thumb);
+
+    // Clear button
+    var clearBtn = document.createElement('button');
+    clearBtn.className = 'cp-slot-clear' + (saved.imageUrl ? ' visible' : '');
+    clearBtn.innerHTML = '&#x2715;';
+    clearBtn.setAttribute('aria-label', 'Clear image');
+    clearBtn.addEventListener('click', function(e) { e.stopPropagation(); clearSlot(); });
+    thumbZone.appendChild(clearBtn);
+
+    slot.appendChild(thumbZone);
+
+    // Caption
+    var captionTa = document.createElement('textarea');
+    captionTa.className = 'cp-caption-ta';
+    captionTa.placeholder = 'Caption\u2026';
+    captionTa.value = saved.caption || '';
+    captionTa.rows = 3;
+    captionTa.addEventListener('blur', function() {
+      weekData[key] = weekData[key] || {};
+      weekData[key].caption = captionTa.value;
+      saveWeekData(weekKey, weekData);
+    });
+    slot.appendChild(captionTa);
+
+    // Footer
+    var footer = document.createElement('div');
+    footer.className = 'cp-slot-footer';
+    var ratioB = document.createElement('span');
+    ratioB.className = 'cp-ratio-badge';
+    ratioB.textContent = platform.ratio;
+    var hashEl = document.createElement('div');
+    hashEl.className = 'cp-hashtags';
+    hashEl.textContent = platform.hashtags;
+    footer.appendChild(ratioB);
+    footer.appendChild(hashEl);
+    slot.appendChild(footer);
+
+    // ── Image helpers ──
+    function setImage(url) {
+      thumb.src = url;
+      thumb.classList.add('visible');
+      thumbZone.classList.add('has-image');
+      clearBtn.classList.add('visible');
+      weekData[key] = weekData[key] || {};
+      weekData[key].imageUrl = url;
+      saveWeekData(weekKey, weekData);
+    }
+
+    function clearSlot() {
+      thumb.classList.remove('visible');
+      thumb.src = '';
+      thumbZone.classList.remove('has-image');
+      clearBtn.classList.remove('visible');
+      if (weekData[key]) { delete weekData[key].imageUrl; saveWeekData(weekKey, weekData); }
+    }
+
+    // Click empty zone → file picker
+    thumbZone.addEventListener('click', function() {
+      if (thumbZone.classList.contains('has-image')) return;
+      var input = document.createElement('input');
+      input.type = 'file'; input.accept = 'image/*';
+      input.onchange = function() {
+        var file = this.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) { setImage(ev.target.result); };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    });
+
+    // Drag-and-drop onto slot
+    slot.addEventListener('dragover', function(e) {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+      slot.classList.add('drag-over');
+    });
+    slot.addEventListener('dragleave', function(e) {
+      if (!slot.contains(e.relatedTarget)) slot.classList.remove('drag-over');
+    });
+    slot.addEventListener('drop', function(e) {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      // File drop from filesystem
+      var files = e.dataTransfer.files;
+      if (files && files.length && files[0].type.startsWith('image/')) {
+        var reader = new FileReader();
+        reader.onload = function(ev) { setImage(ev.target.result); };
+        reader.readAsDataURL(files[0]);
+        return;
+      }
+      // URL from #ig-image drag
+      var url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) setImage(url);
+    });
+
+    return slot;
+  }
+
+  // ── Export JSON ───────────────────────────────────────────────────────
+  document.getElementById('cp-export-json').addEventListener('click', function() {
+    var dates  = getWeekDates(weekOffset);
+    var output = { week: weekKey, generated: new Date().toISOString(), platforms: {} };
+    CP_PLATFORMS.forEach(function(p) {
+      output.platforms[p.id] = {};
+      CP_DAYS.forEach(function(day, d) {
+        var saved = weekData[cellKey(p.id, d)] || {};
+        output.platforms[p.id][day.toLowerCase()] = {
+          date:     dates[d].toISOString().split('T')[0],
+          imageUrl: saved.imageUrl || null,
+          caption:  saved.caption  || '',
+          hashtags: p.hashtags,
+          ratio:    p.ratio
+        };
+      });
+    });
+    var blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pp-campaign-' + weekKey + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // ── Copy to Clipboard ─────────────────────────────────────────────────
+  document.getElementById('cp-copy-text').addEventListener('click', function() {
+    var btn   = this;
+    var dates = getWeekDates(weekOffset);
+    var lines = ['\u2500\u2500 PACE & PLATTER CAMPAIGN ' + weekKey + ' \u2500\u2500', ''];
+    CP_PLATFORMS.forEach(function(p) {
+      lines.push(p.emoji + '  ' + p.label.toUpperCase());
+      CP_DAYS.forEach(function(day, d) {
+        var saved   = weekData[cellKey(p.id, d)] || {};
+        var dateStr = dates[d].toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+        var caption = saved.caption || '(no caption)';
+        lines.push('  ' + dateStr + ': ' + caption);
+        lines.push('  ' + p.hashtags);
+      });
+      lines.push('');
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = 'Copy to Clipboard'; }, 1800);
+    });
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────
+  rebuild();
+})();
 </script>
 
 </body>
