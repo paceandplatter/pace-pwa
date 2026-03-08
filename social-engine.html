@@ -564,14 +564,22 @@
       color: var(--iron); transition: color 0.3s;
     }
 
+    /* Keyhole spin wrapper — rotation lives here so vibrate on SVG can use translateX only */
+    #ig-keyhole-spin {
+      width: 64px; height: 80px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
     /* Generating state */
+    #ig-canvas.generating #ig-keyhole-spin { animation: ig-spin 8s linear infinite; }
     #ig-canvas.generating #ig-keyhole {
       color: var(--silver-muted);
-      animation: ig-spin 8s linear infinite, ig-vibrate 2.5s ease-in-out infinite;
+      animation: ig-vibrate 2.5s ease-in-out infinite;
     }
     #ig-canvas.generating #ig-status-text { color: var(--silver-muted); }
 
     /* Locked (success) state */
+    #ig-canvas.locked #ig-keyhole-spin { animation: none; }
     #ig-canvas.locked #ig-keyhole {
       color: var(--crimson);
       animation: ig-lock-snap 0.35s ease forwards;
@@ -581,13 +589,14 @@
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
+    /* Vibrate uses translateX only — no rotation, avoids conflict with ig-spin on wrapper */
     @keyframes ig-vibrate {
-      0%, 85%, 100% { transform: rotate(0deg) translateX(0); }
-      87%  { transform: rotate(-1.5deg) translateX(-1px); }
-      89%  { transform: rotate(1.5deg) translateX(1px); }
-      91%  { transform: rotate(-1deg) translateX(-1px); }
-      93%  { transform: rotate(1deg) translateX(1px); }
-      95%  { transform: rotate(0deg) translateX(0); }
+      0%, 82%, 100% { transform: translateX(0); }
+      84%  { transform: translateX(-2px); }
+      86%  { transform: translateX(2px); }
+      88%  { transform: translateX(-1.5px); }
+      90%  { transform: translateX(1.5px); }
+      92%  { transform: translateX(0); }
     }
     @keyframes ig-lock-snap {
       0%   { transform: scale(1) rotate(0deg); }
@@ -1600,6 +1609,111 @@
   transition: all 0.15s;
 }
 #pf-save-cancel-modal:hover { color: var(--off-white); border-color: var(--iron); }
+
+/* ================================================================
+   ANIMATIONS & FINAL POLISH
+   ================================================================ */
+
+/* ── 8. Forge tab glow pulse (inactive only) ── */
+@keyframes forge-pulse {
+  0%, 100% {
+    box-shadow:
+      0 -4px 16px var(--crimson-glow-soft),
+      0  0    8px var(--crimson-glow-dim),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  50% {
+    box-shadow:
+      0 -6px 22px var(--crimson-glow),
+      0  0   14px rgba(196, 30, 58, 0.18),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+}
+.tab-btn.forge:not(.active) {
+  animation: forge-pulse 3s ease-in-out infinite;
+}
+
+/* ── 7. Prompt Library card hover lift ── */
+.pl-card {
+  transition: border-color 0.15s, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pl-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.82),
+    0 3px 8px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* ── 6. Crimson button scale(1.02) on hover, scale(0.98) on active ── */
+/* Add transform to transitions for buttons that were missing it */
+.pl-use-btn      { transition: background 0.15s, transform 0.1s; }
+#settings-save   { transition: background 0.15s, box-shadow 0.15s, transform 0.1s; }
+#pl-save-btn     { transition: background 0.15s, transform 0.1s; }
+.pl-save-confirm { transition: background 0.15s, transform 0.1s; }
+
+/* Hover scale — :not(:active) ensures active scale(0.98) always wins */
+.ig-generate-btn:not(:disabled):not(:active):hover  { transform: scale(1.02); }
+#pf-generate:not(:disabled):not(:active):hover      { transform: scale(1.02); }
+.pl-use-btn:not(:active):hover                      { transform: scale(1.02); }
+#settings-save:not(:active):hover                   { transform: scale(1.02); }
+#pl-save-btn:not(:active):hover                     { transform: scale(1.02); }
+.pl-save-confirm:not(:active):hover                 { transform: scale(1.02); }
+.pf-action-btn.pf-action-primary:not(:active):hover { transform: scale(1.02); }
+.cp-export-btn.cp-primary:not(:active):hover        { transform: scale(1.02); }
+
+/* Active scale — already defined for ig-generate-btn and pl-use-btn;
+   add for remaining crimson buttons */
+#pf-generate:active      { transform: scale(0.98); }
+#settings-save:active    { transform: scale(0.98); }
+#pl-save-btn:active      { transform: scale(0.98); }
+.pl-save-confirm:active  { transform: scale(0.98); }
+.cp-export-btn.cp-primary:active { transform: scale(0.98); }
+
+/* ── 10. Caption section slides in when revealed ── */
+@keyframes caption-slide-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* These animate from the moment display changes from none to flex */
+#ig-caption-section { animation: caption-slide-in 0.3s ease-out; }
+#vg-caption-section { animation: caption-slide-in 0.3s ease-out; }
+
+/* ── Forge keyhole loading — reuse ig-spin and ig-vibrate ── */
+#pf-keyhole-spin {
+  width: 64px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+}
+#pf-keyhole {
+  width: 64px; height: 80px;
+  color: var(--crimson);
+}
+#pf-loading.visible #pf-keyhole-spin { animation: ig-spin 8s linear infinite; }
+#pf-loading.visible #pf-keyhole      { animation: ig-vibrate 2.5s ease-in-out infinite; }
+/* Remove old spinner (now unused) */
+#pf-spinner { display: none; }
+
+/* ── 9. Atmospheric street-grid texture on dark panel toolbars ── */
+/* Tiny SVG grid at 3% opacity — never interferes with readability */
+#cp-toolbar,
+#pl-toolbar,
+#pf-header,
+.sd-header {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect x='0' y='22' width='50' height='6' fill='%23ffffff' opacity='0.03'/%3E%3Crect x='22' y='0' width='6' height='50' fill='%23ffffff' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ── Mobile: tab nav scrolls horizontally, no overflow ── */
+@media (max-width: 640px) {
+  #tab-nav {
+    overflow-x: auto;
+    padding: 0 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #tab-nav::-webkit-scrollbar { height: 0; }
+  .ig-grid { grid-template-columns: 1fr !important; }
+  #pf-grid { grid-template-columns: 1fr !important; overflow-y: auto !important; }
+}
   </style>
 </head>
 <body>
@@ -1729,11 +1843,13 @@
             <div id="ig-canvas">
               <!-- Keyhole lock SVG (shown during loading) -->
               <div id="ig-keyhole-wrap">
-                <svg id="ig-keyhole" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <circle cx="32" cy="26" r="18" fill="none" stroke="currentColor" stroke-width="3.5"/>
-                  <circle cx="32" cy="26" r="8" fill="currentColor"/>
-                  <path d="M24 40 L20 72 L44 72 L40 40 Z" fill="currentColor"/>
-                </svg>
+                <div id="ig-keyhole-spin">
+                  <svg id="ig-keyhole" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="32" cy="26" r="18" fill="none" stroke="currentColor" stroke-width="3.5"/>
+                    <circle cx="32" cy="26" r="8" fill="currentColor"/>
+                    <path d="M24 40 L20 72 L44 72 L40 40 Z" fill="currentColor"/>
+                  </svg>
+                </div>
                 <div id="ig-status-text">Ready</div>
               </div>
               <!-- Generated image (hidden until result) -->
@@ -2123,7 +2239,13 @@
 
         <!-- Loading -->
         <div id="pf-loading">
-          <div id="pf-spinner"></div>
+          <div id="pf-keyhole-spin">
+            <svg id="pf-keyhole" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="32" cy="26" r="18" fill="none" stroke="currentColor" stroke-width="3.5"/>
+              <circle cx="32" cy="26" r="8" fill="currentColor"/>
+              <path d="M24 40 L20 72 L44 72 L40 40 Z" fill="currentColor"/>
+            </svg>
+          </div>
           <div id="pf-loading-text">Forging prompt&hellip;</div>
         </div>
 
